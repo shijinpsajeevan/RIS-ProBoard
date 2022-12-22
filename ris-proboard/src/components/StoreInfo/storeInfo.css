@@ -1,0 +1,42 @@
+.primaryHeader {
+    display: inline;
+    padding: 5px;
+    background-image: linear-gradient(to right, #dedbe4 45%, #ede4e2);
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    font-family: Nunito-Bold;
+    font-size: 14px;
+    border: 2px ridge rgb(228, 234, 221);
+    border-radius: 10px 10px 10px 10px;
+    transition: all 0.5s linear;
+  }
+
+.primaryHeader:hover{
+    color: rgb(255, 255, 255);
+    border: 2px ridge rgb(246, 247, 246);
+}
+
+.primaryHeaderBg {
+    
+}
+
+.primaryFilter{
+  text-align: end;
+}
+
+.primaryFilter button,
+.primaryFilter button:focus{
+    color: rgb(235, 240, 236);
+    background-color: transparent !important;
+    border: 0;
+    border-radius: 0px;
+}
+.primaryFilter button:hover{
+    color: #bddcf3;
+}
+
+.rowStyle{
+    background-image: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+    padding: 20px;
+}
