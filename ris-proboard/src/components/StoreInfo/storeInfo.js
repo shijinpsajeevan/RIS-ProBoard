@@ -1,6 +1,6 @@
 import React,{useState, useEffect} from 'react';
 import {useSelector, useDispatch} from "react-redux";
-import {increment,decrement,increment1,decrement1} from './storeInfoSlice';
+import {increment,decrement,set_str} from '../../redux/storeFilter';
 
 import Button from 'react-bootstrap/Button';
 import Offcanvas from 'react-bootstrap/Offcanvas';
@@ -17,6 +17,11 @@ import './storeInfo.css'
 function StoreInfo({ name, ...props }) {
 
     const count =useSelector((state)=>state.counter1.count);
+    const str_options = useSelector((state)=>state.counter1.str_filter_val);
+
+    console.log(str_options,"StoreOpertaion");
+  
+
     const dispatch = useDispatch();
 
     const [companyData, setcompanyData] = useState([]);
@@ -32,9 +37,12 @@ function StoreInfo({ name, ...props }) {
             try {
                 var optionData=[];
                 var optionData1=[];
+                // await fetch("http://192.168.50.136:3001/dashboard").then((res) => res.json()).then((data) => optionData=data.messages.rows);
                 await fetch("http://192.168.50.136:3001/dashboard").then((res) => res.json()).then((data) => optionData=data.messages.rows);
                 await fetch("http://192.168.50.136:3001/dashboard/subsidiary").then((res) => res.json()).then((data1) => optionData1=data1.messages.rows);
-                setcompanyData(optionData);
+                console.log(optionData,"OptionData");
+                dispatch(set_str(optionData));
+                // setcompanyData(optionData);
                 setcompanyData1(optionData1);
             } catch (error) {
                 console.log(error);
@@ -70,7 +78,7 @@ function StoreInfo({ name, ...props }) {
                     <br/>
                     <FloatingLabel controlId="floatingSelect" label="Select Store">
                         <Form.Select aria-label="Floating label select example">
-                          {companyData.map((optionSet) => <option key={optionSet[2]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
+                          {str_options.map((optionSet) => <option key={optionSet[2]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
                         </Form.Select>
                     </FloatingLabel>
                     </Offcanvas.Body>
@@ -92,7 +100,7 @@ function StoreInfo({ name, ...props }) {
         </Row>
         <Row>
             <p>{count}</p>
-            <button onClick={()=>dispatch(increment())}>+</button>
+            <button onClick={()=>dispatch(increment(100))}>+</button>
             <button onClick={()=>dispatch(decrement())}>-</button>
         </Row>
     </Container>

@@ -1,5 +1,5 @@
 import {configureStore} from "@reduxjs/toolkit";
-import {abc,def} from './components/StoreInfo/storeInfoSlice';
+import {abc} from './storeFilter';
 
 export const store = configureStore({
     reducer:{
