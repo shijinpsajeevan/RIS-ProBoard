@@ -1,7 +1,13 @@
+// Imported React components
 import React,{useState, useEffect} from 'react';
 import {useSelector, useDispatch} from "react-redux";
-import {increment,decrement,set_str} from '../../redux/storeFilter';
+import Badge from 'react-bootstrap/Badge';
+import {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details, set_selected_sbs} from '../../redux/storeFilter';
 
+// Import Axios Library
+import axios from 'axios';
+
+// Imported Bootstrap Library
 import Button from 'react-bootstrap/Button';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import Container from 'react-bootstrap/Container';
@@ -10,49 +16,127 @@ import Col from 'react-bootstrap/Col';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 import Card from 'react-bootstrap/Card';
+import Alert from 'react-bootstrap/Alert';
+import Table from 'react-bootstrap/Table';
+
+// Imported fontAwesome Library
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {faFilter } from '@fortawesome/free-solid-svg-icons'
+import {faFilter,faShop} from '@fortawesome/free-solid-svg-icons'
+
+// Imported Custom Stylesheets
 import './storeInfo.css'
 
 function StoreInfo({ name, ...props }) {
 
-    const count =useSelector((state)=>state.counter1.count);
     const str_options = useSelector((state)=>state.counter1.str_filter_val);
+    const sbs_options = useSelector((state)=>state.counter1.sbs_filter_val);
+    const selected_store = useSelector((state)=>state.counter1.selected_store);
+    const selected_sbs = useSelector((state)=>state.counter1.selected_sbs);
+    const store_details = useSelector((state)=>state.counter1.store_details);
 
-    console.log(str_options,"StoreOpertaion");
+    console.log(str_options,"StoreOptions");
   
-
     const dispatch = useDispatch();
 
-    const [companyData, setcompanyData] = useState([]);
-    const [companyData1, setcompanyData1] = useState([]);
     const [show, setShow] = useState(false);
+    const [showAlert, setShowAlert] = useState(true);
+    const [tdy_sld_qty,set_today_sld_qty] = useState(0);
     
     const handleClose = () => setShow(false);
     const toggleShow = () => setShow((s) => !s);
 
+    const saveStoreSid = (str_sid)=>{
+        dispatch(set_selected_store(str_sid));
+    }
+
+    const gettdaytransttl = async(a)=>{
+            try {
+                await axios.request({
+                  method:'POST',
+                  url:'http://localhost:3001/dashboard/qtysldtoday',
+                  headers:{
+                      'content-type':'application/json',
+                  },
+                  data:[{
+                      store_sid : selected_store,
+
+                  }]
+                })
+              .then(function (res) {
+                {res.data.messages[0][0]?set_today_sld_qty("AED "+res.data.messages[0][0]):set_today_sld_qty("AED "+0)}           
+              })
+              .catch(function (error) {
+                  console.error(error);
+              });
+      
+              } catch (error) {
+                  console.log("axios error");
+              }
+    }
+
+    const fetchStoreData = async(btn) =>{       
+
+        if(btn==="btn")
+        {
+            setShow(false)
+        }
+            try {
+                await axios.request({
+                  method:'POST',
+                  url:'http://localhost:3001/dashboard/storeData',
+                  headers:{
+                      'content-type':'application/json',
+                  },
+                  data:[{
+                      store_sid : selected_store
+                  }]
+                })
+              .then(function (res) {
+                  console.log(res.data.messages);
+                  console.log(res.data.messages[0][0],"Response from server");
+                  dispatch(set_store_details(res.data.messages));
+
+                //   Fetching and Updating Today's sold qty in Store
+
+                //passing store sid to the function
+                gettdaytransttl(res.data.messages[0][0])
+                
+               
+              })
+              .catch(function (error) {
+                  console.error(error);
+              });
+      
+              } catch (error) {
+                  console.log("axios error");
+              }
+        
+    }
 
     useEffect(() => {
-        async function getCompanyProfile(){
+        if(selected_store)
+        {
+            fetchStoreData();
+        }
+        async function getStoreList(){
             try {
-                var optionData=[];
-                var optionData1=[];
-                // await fetch("http://192.168.50.136:3001/dashboard").then((res) => res.json()).then((data) => optionData=data.messages.rows);
-                await fetch("http://192.168.50.136:3001/dashboard").then((res) => res.json()).then((data) => optionData=data.messages.rows);
-                await fetch("http://192.168.50.136:3001/dashboard/subsidiary").then((res) => res.json()).then((data1) => optionData1=data1.messages.rows);
-                console.log(optionData,"OptionData");
-                dispatch(set_str(optionData));
-                // setcompanyData(optionData);
-                setcompanyData1(optionData1);
+                var str_list_OptionData=[];
+                await fetch("http://localhost:3001/dashboard").then((res) => res.json()).then((data) => str_list_OptionData=data.messages.rows);
+                console.log(str_list_OptionData,"str_list_OptionData");
+                dispatch(set_str_filter_value(str_list_OptionData));
+                if(!selected_store)
+                {
+                    dispatch(set_selected_store((str_list_OptionData.find(str=>str[4]===1))[0]))
+                }
             } catch (error) {
                 console.log(error);
             }
         }
-        getCompanyProfile();
+        getStoreList();
+        selected_store?fetchStoreData():setShow(false);
+      }, [selected_store]);
 
-      }, []);
 
-    console.log("Working api")
   return (
     <>
     <Container fluid>
@@ -65,43 +149,194 @@ function StoreInfo({ name, ...props }) {
             <Col>
                 <div className='primaryFilter'>
                 <Button onClick={toggleShow} className='filterIcon'><FontAwesomeIcon icon={faFilter}/></Button>
-                <Offcanvas show={show} onHide={handleClose} {...props}>
+                <Offcanvas show={show} onHide={handleClose} {...props} placement="end">
                     <Offcanvas.Header closeButton>
                     <Offcanvas.Title>Filter</Offcanvas.Title>
                     </Offcanvas.Header>
                     <Offcanvas.Body>
                     <FloatingLabel controlId="floatingSelect" label="Select Subsidiary">
-                        <Form.Select aria-label="Floating label select example">
-                        {companyData1.map((optionSet1) => <option key={optionSet1[1]} disabled={optionSet1[4]===0?true:false} value={optionSet1[1]}>{optionSet1[2]}</option> )}
+                        <Form.Select aria-label="Floating label select example" onChange={e=>saveStoreSid(e.target.value)} defaultValue={selected_store}>
+                          {str_options.map((optionSet) => <option key={optionSet[2]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
+                          {
+                            console.log( str_options,"check")
+                          }
                         </Form.Select>
                     </FloatingLabel>
                     <br/>
                     <FloatingLabel controlId="floatingSelect" label="Select Store">
-                        <Form.Select aria-label="Floating label select example">
+                        <Form.Select aria-label="Floating label select example" onChange={e=>saveStoreSid(e.target.value)} defaultValue={selected_store}>
                           {str_options.map((optionSet) => <option key={optionSet[2]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
+                          {
+                            console.log( str_options,"check")
+                          }
                         </Form.Select>
                     </FloatingLabel>
+                    <br/>
+                    <FloatingLabel controlId="floatingSelect" label="Mode">
+                        <Form.Select aria-label="Floating label select example">
+                          <option>Local</option>
+                          <option>Remote</option>
+                        </Form.Select>
+                    </FloatingLabel>
+                    <br/>
+                    <Button variant="success" onClick={()=>fetchStoreData("btn")}>Save</Button>
                     </Offcanvas.Body>
                 </Offcanvas>
                 </div>
             </Col>
         </Row>
-        <Row>
+        {showAlert?<Row>
+            <Alert show={showAlert} variant="danger" onClose={() => setShowAlert(false)} dismissible>
+                    <Alert.Heading>Negative stock Alert</Alert.Heading>
+                    <p></p>
+            </Alert>
+            </Row>:<></>}
+        <Row className='rowStyle'>
+            <Col>
             <Card>
                 <Card.Body>
-                <Card.Title>Store Name : </Card.Title>
+                <Card.Title>
+                   <center style={{fontFamily:"Nunito-Bold"}}><FontAwesomeIcon icon={faShop} /> Store Intelligence</center>
+                   <hr/>
+                </Card.Title>
                 <Card.Text>
-                Some quick example text to build on the card title and make up the
-                bulk of the card's content.
+                <Container fluid className='p-0 m-0'>
+                        <Row>
+                        <Col xs={12} md={5}>
+                        <Table borderless className='p-0 storeTable' responsive>
+                            <tbody>
+                                <tr>
+                                <td>Store Name</td>
+                                <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                <td>{store_details[0]?store_details[0][2]:''} &nbsp;
+                                        <sup>{store_details[0]?store_details[0][3]===1?<span style={{fontSize: "small"}}><Badge pill bg="success">Active</Badge></span>:<span style={{fontSize: "small"}}><Badge pill bg="secondary">Deactivated</Badge></span>:''}
+                                        </sup></td>
+                                </tr>
+                                <tr>
+                                <td>Store Code</td>
+                                <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                <td>{store_details[0]?store_details[0][1]:''}</td>
+                                </tr>
+
+                                <tr>
+                                    <td>Address</td>
+                                    <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                    <td>{store_details[0]?<span>{store_details[0][4]}<br/></span>:''}
+                                    {store_details[0]?<span>{store_details[0][5]}<br/></span>:''}
+                                    {store_details[0]?<span>{store_details[0][6]}<br/></span>:''}
+                                    {store_details[0]?<span>{store_details[0][7]}<br/></span>:''}
+                                    {store_details[0]?<span>{store_details[0][8]}</span>:''}
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Zip</td>
+                                    <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                    <td>{store_details[0]?store_details[0][9]:''}
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Phone</td>
+                                    <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                    <td>{store_details[0]?<><span>{store_details[0][10]}</span><><span><br/>{store_details[0][11]}</span></></>:''}
+                                    </td>
+                                </tr>
+                                <tr>
+                                <td>Subsidiary Name</td>
+                                <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                <td>{store_details[0]?store_details[0][13]:''}</td>
+                                </tr>
+                                <tr>
+                                <td>Active price level</td>
+                                <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                <td>{store_details[0]?store_details[0][15]:''}</td>
+                                </tr>
+
+                                <tr>
+                                    <td>Tax Area 1</td>
+                                    <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                    <td>
+                                    {store_details[0]?store_details[0][16]:''}
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td>Tax Area 2</td>
+                                    <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
+                                    <td>{store_details[0]?store_details[0][17]:''}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                        </Col>
+                        <Col xs={12} md={7}>
+                        <div>
+                            <div className="container pt-1">
+                                <div className="row align-items-stretch">
+                                <div className="c-dashboardInfo col-md-6">
+                                    <div className="wrap">
+                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Stock On Hand<svg
+                                        className="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                                            <path fill="none" d="M0 0h24v24H0z"></path>
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                                        </path>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">187298</span>
+                                    </div>
+                                </div>
+                                <div className="c-dashboardInfo col-md-6">
+                                    <div className="wrap">
+                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Transaction Total<svg
+                                        className="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                                        <path fill="none" d="M0 0h24v24H0z"></path>
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                                        </path>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">€500</span><span
+                                        className="hind-font caption-12 c-dashboardInfo__subInfo">Last month: €30</span>
+                                    </div>
+                                </div>
+                                <div className="c-dashboardInfo col-md-6">
+                                    <div className="wrap">
+                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Qty Sold Today<svg
+                                        className="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                                            <path fill="none" d="M0 0h24v24H0z"></path>
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                                        </path>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">{tdy_sld_qty}</span>
+                                    </div>
+                                </div>
+                                <div className="c-dashboardInfo col-md-6">
+                                    <div className="wrap">
+                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Negative Stock<svg
+                                        className="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
+                                        <path fill="none" d="M0 0h24v24H0z"></path>
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
+                                        </path>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">0</span><span
+                                        className="hind-font caption-12 c-dashboardInfo__subInfo"></span>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                            </div>
+                        </Col>
+                        </Row>
+                    </Container>
                 </Card.Text>
-                <Button variant="primary">Check</Button>
                 </Card.Body>
             </Card>
-        </Row>
-        <Row>
-            <p>{count}</p>
-            <button onClick={()=>dispatch(increment(100))}>+</button>
-            <button onClick={()=>dispatch(decrement())}>-</button>
+            </Col>
         </Row>
     </Container>
     </>
