@@ -40,7 +40,10 @@ function StoreInfo({ name, ...props }) {
 
     const [show, setShow] = useState(false);
     const [showAlert, setShowAlert] = useState(true);
-    const [tdy_sld_qty,set_today_sld_qty] = useState(0);
+    const [tdy_ttl_trans,set_tdy_ttl_trans] = useState(0);
+    const [tdy_sold_qty,set_tdy_sold_qty] = useState(0);
+    const [ohQty,setohQty] = useState(0);
+    const [negQty,setnegQqty] = useState(0);
     
     const handleClose = () => setShow(false);
     const toggleShow = () => setShow((s) => !s);
@@ -49,21 +52,72 @@ function StoreInfo({ name, ...props }) {
         dispatch(set_selected_store(str_sid));
     }
 
+    const getnegativeStock = async(a)=>{
+        try {
+            await axios.request({
+              method:'POST',
+              url:'http://localhost:3001/dashboard/negativeStock',
+              headers:{
+                  'content-type':'application/json',
+              },
+              data:[{
+                  store_sid : a,
+
+              }]
+            })
+          .then(function (res) {
+            {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}           
+          })
+          .catch(function (error) {
+              console.error(error);
+          });
+  
+          } catch (error) {
+              console.log("axios error");
+          }
+}
+
+    const getstoreOHqty = async(a)=>{
+        try {
+            await axios.request({
+              method:'POST',
+              url:'http://localhost:3001/dashboard/storeOHqty',
+              headers:{
+                  'content-type':'application/json',
+              },
+              data:[{
+                  store_sid : a,
+
+              }]
+            })
+          .then(function (res) {
+            {res.data.messages[0]?res.data.messages[0][0]?setohQty(res.data.messages[0][0]):setohQty(0):setohQty(0)}           
+          })
+          .catch(function (error) {
+              console.error(error);
+          });
+  
+          } catch (error) {
+              console.log("axios error");
+          }
+}
+
+
     const gettdaytransttl = async(a)=>{
             try {
                 await axios.request({
                   method:'POST',
-                  url:'http://localhost:3001/dashboard/qtysldtoday',
+                  url:'http://localhost:3001/dashboard/gettdaytransttl',
                   headers:{
                       'content-type':'application/json',
                   },
                   data:[{
-                      store_sid : selected_store,
+                      store_sid : a,
 
                   }]
                 })
               .then(function (res) {
-                {res.data.messages[0][0]?set_today_sld_qty("AED "+res.data.messages[0][0]):set_today_sld_qty("AED "+0)}           
+                {res.data.messages[0]?res.data.messages[0][0]?set_tdy_ttl_trans("AED "+res.data.messages[0][0]):set_tdy_ttl_trans("AED "+0):set_tdy_ttl_trans("AED "+0)}           
               })
               .catch(function (error) {
                   console.error(error);
@@ -74,8 +128,31 @@ function StoreInfo({ name, ...props }) {
               }
     }
 
-    const fetchStoreData = async(btn) =>{       
+    const gettdayqtyttl = async(a)=>{
+        try {
+            await axios.request({
+              method:'POST',
+              url:'http://localhost:3001/dashboard/qtysldtoday',
+              headers:{
+                  'content-type':'application/json',
+              },
+              data:[{
+                  store_sid : a,
 
+              }]
+            }).then(function (res) {       
+            {res.data.messages[0]?res.data.messages[0][0]?set_tdy_sold_qty(res.data.messages[0][0]):set_tdy_sold_qty(0):set_tdy_sold_qty(0)}           
+          })
+          .catch(function (error) {
+              console.error(error);
+          });
+  
+          } catch (error) {
+              console.log("axios error");
+          }
+}
+
+    const fetchStoreData = async(btn) =>{       
         if(btn==="btn")
         {
             setShow(false)
@@ -99,8 +176,10 @@ function StoreInfo({ name, ...props }) {
                 //   Fetching and Updating Today's sold qty in Store
 
                 //passing store sid to the function
-                gettdaytransttl(res.data.messages[0][0])
-                
+                gettdaytransttl(res.data.messages[0][0]);
+                gettdayqtyttl(res.data.messages[0][0]);
+                getstoreOHqty(res.data.messages[0][0]);
+                getnegativeStock(res.data.messages[0][0]);
                
               })
               .catch(function (error) {
@@ -118,6 +197,39 @@ function StoreInfo({ name, ...props }) {
         {
             fetchStoreData();
         }
+
+        async function getSubsidiaryList(){
+            try {
+                await axios.request({
+                    method:'POST',
+                    url:'http://localhost:3001/dashboard/subsidiary',
+                    headers:{
+                        'content-type':'application/json',
+                    },
+                    data:[{
+                        sbs_sid : '647166130000131257'
+                    }]
+                  }).then(function (res) {
+                    console.log(res.data.messages,"zzzzzzzzzzzzzzzzzzzzzzzzz");
+                //     dispatch(set_store_details(res.data.messages));
+                //   gettdaytransttl(res.data.messages[0][0])
+                  
+                 
+                })
+            } catch (error) {
+                
+            }
+
+            // try {
+            //     var sbs_list_OptionData=[];
+            //     await fetch("http://localhost:3001/dashboard/subsidiary").then((res)=>res.json()).then((data)=>sbs_list_OptionData=data.messages.rows);
+            //     console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",sbs_list_OptionData);
+            //     dispatch(set_sbs_filter_value(sbs_list_OptionData));
+            // } catch (error) {
+            //     console.log("Error");
+            // }
+        }
+
         async function getStoreList(){
             try {
                 var str_list_OptionData=[];
@@ -132,6 +244,7 @@ function StoreInfo({ name, ...props }) {
                 console.log(error);
             }
         }
+        getSubsidiaryList();
         getStoreList();
         selected_store?fetchStoreData():setShow(false);
       }, [selected_store]);
@@ -156,16 +269,16 @@ function StoreInfo({ name, ...props }) {
                     <Offcanvas.Body>
                     <FloatingLabel controlId="floatingSelect" label="Select Subsidiary">
                         <Form.Select aria-label="Floating label select example" onChange={e=>saveStoreSid(e.target.value)} defaultValue={selected_store}>
-                          {str_options.map((optionSet) => <option key={optionSet[2]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
+                          {str_options.map((optionSet) => <option key={optionSet[0]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
                           {
-                            console.log( str_options,"check")
+                            console.log( str_options,"testtesttesttest")
                           }
                         </Form.Select>
                     </FloatingLabel>
                     <br/>
                     <FloatingLabel controlId="floatingSelect" label="Select Store">
                         <Form.Select aria-label="Floating label select example" onChange={e=>saveStoreSid(e.target.value)} defaultValue={selected_store}>
-                          {str_options.map((optionSet) => <option key={optionSet[2]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
+                          {str_options.map((optionSet) => <option key={optionSet[0]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
                           {
                             console.log( str_options,"check")
                           }
@@ -232,39 +345,39 @@ function StoreInfo({ name, ...props }) {
                                 <tr>
                                     <td>Zip</td>
                                     <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                    <td>{store_details[0]?store_details[0][9]:''}
+                                    <td>{store_details[0]?store_details[0][9]?store_details[0][9]:"N/A":'N/A'}
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <td>Phone</td>
                                     <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                    <td>{store_details[0]?<><span>{store_details[0][10]}</span><><span><br/>{store_details[0][11]}</span></></>:''}
+                                    <td>{store_details[0]?<><span>{store_details[0][10]}</span><><span><br/>{store_details[0][11]}</span></></>:'N/A'}
                                     </td>
                                 </tr>
                                 <tr>
                                 <td>Subsidiary Name</td>
                                 <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                <td>{store_details[0]?store_details[0][13]:''}</td>
+                                <td>{store_details[0]?store_details[0][13]?store_details[0][13]:"N/A":"N/A"}</td>
                                 </tr>
                                 <tr>
                                 <td>Active price level</td>
                                 <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                <td>{store_details[0]?store_details[0][15]:''}</td>
+                                <td>{store_details[0]?store_details[0][15]?store_details[0][15]:"N/A":'N/A'}</td>
                                 </tr>
 
                                 <tr>
                                     <td>Tax Area 1</td>
                                     <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
                                     <td>
-                                    {store_details[0]?store_details[0][16]:''}
+                                    {store_details[0]?store_details[0][16]?store_details[0][16]:"N/A":'N/A'}
                                     </td>
                                 </tr>
                                 
                                 <tr>
                                     <td>Tax Area 2</td>
                                     <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                                    <td>{store_details[0]?store_details[0][17]:''}
+                                    <td>{store_details[0]?store_details[0][17]?store_details[0][17]:"N/A":"N/A"}
                                     </td>
                                 </tr>
                                 <tr>
@@ -283,13 +396,15 @@ function StoreInfo({ name, ...props }) {
                                 <div className="row align-items-stretch">
                                 <div className="c-dashboardInfo col-md-6">
                                     <div className="wrap">
-                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Stock On Hand<svg
+                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Quantity Sold<svg
                                         className="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
                                             <path fill="none" d="M0 0h24v24H0z"></path>
                                         <path
                                             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
                                         </path>
-                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">187298</span>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">{tdy_sold_qty}</span>
+                                        <span
+                                        className="hind-font caption-12 c-dashboardInfo__subInfo">Yesterday: 0</span>
                                     </div>
                                 </div>
                                 <div className="c-dashboardInfo col-md-6">
@@ -300,19 +415,21 @@ function StoreInfo({ name, ...props }) {
                                         <path
                                             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
                                         </path>
-                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">€500</span><span
-                                        className="hind-font caption-12 c-dashboardInfo__subInfo">Last month: €30</span>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">{tdy_ttl_trans}</span><span
+                                        className="hind-font caption-12 c-dashboardInfo__subInfo">Yesterday: 0</span>
                                     </div>
                                 </div>
                                 <div className="c-dashboardInfo col-md-6">
                                     <div className="wrap">
-                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Qty Sold Today<svg
+                                    <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">Available Stock<svg
                                         className="MuiSvgIcon-root-19" focusable="false" viewBox="0 0 24 24" aria-hidden="true" role="presentation">
                                             <path fill="none" d="M0 0h24v24H0z"></path>
                                         <path
                                             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
                                         </path>
-                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">{tdy_sld_qty}</span>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">{ohQty}</span>
+                                        <span
+                                        className="hind-font caption-12 c-dashboardInfo__subInfo">Transit: 0</span>
                                     </div>
                                 </div>
                                 <div className="c-dashboardInfo col-md-6">
@@ -323,8 +440,8 @@ function StoreInfo({ name, ...props }) {
                                         <path
                                             d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z">
                                         </path>
-                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">0</span><span
-                                        className="hind-font caption-12 c-dashboardInfo__subInfo"></span>
+                                        </svg></h4><span className="hind-font caption-12 c-dashboardInfo__count">{negQty}</span><span
+                                        className="hind-font caption-12 c-dashboardInfo__subInfo">  <Button variant="outline-primary">Details</Button></span>
                                     </div>
                                 </div>
                                 </div>
@@ -336,6 +453,18 @@ function StoreInfo({ name, ...props }) {
                 </Card.Text>
                 </Card.Body>
             </Card>
+            </Col>
+        </Row>
+        <Row className='rowStyle'>
+            <Col>
+                <Card>
+                    <Card.Body>Test1</Card.Body>
+                </Card>
+            </Col>
+            <Col>
+                <Card>
+                    <Card.Body>Test2</Card.Body>
+                </Card>
             </Col>
         </Row>
     </Container>
