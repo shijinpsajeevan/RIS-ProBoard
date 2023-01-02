@@ -4,6 +4,11 @@ import {useSelector, useDispatch} from "react-redux";
 import Badge from 'react-bootstrap/Badge';
 import {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details, set_selected_sbs} from '../../redux/storeFilter';
 
+import LineChartComp from '../Charts/LineChartComp';
+import BarChartComp from '../Charts/BarChartComp';
+import StackedBarComp from '../Charts/StackedBarComp';
+import PieChartComp from '../Charts/PieChartComp';
+
 // Import Axios Library
 import axios from 'axios';
 
@@ -25,6 +30,7 @@ import {faFilter,faShop} from '@fortawesome/free-solid-svg-icons'
 
 // Imported Custom Stylesheets
 import './storeInfo.css'
+import { LineChart } from 'recharts';
 
 function StoreInfo({ name, ...props }) {
 
@@ -51,6 +57,33 @@ function StoreInfo({ name, ...props }) {
     const saveStoreSid = (str_sid)=>{
         dispatch(set_selected_store(str_sid));
     }
+
+
+    const gettdyhrsalesChartLine= async(a)=>{
+        try {
+            await axios.request({
+              method:'POST',
+              url:'http://localhost:3001/dashboard/tdyhrsalesChartLine',
+              headers:{
+                  'content-type':'application/json',
+              },
+              data:[{
+                  store_sid : a,
+
+              }]
+            })
+          .then(function (res) {
+            console.log("LINE_CHART",res.data);
+            // {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}           
+          })
+          .catch(function (error) {
+              console.error(error);
+          });
+  
+          } catch (error) {
+              console.log("axios error");
+          }
+}
 
     const getnegativeStock = async(a)=>{
         try {
@@ -180,6 +213,7 @@ function StoreInfo({ name, ...props }) {
                 gettdayqtyttl(res.data.messages[0][0]);
                 getstoreOHqty(res.data.messages[0][0]);
                 getnegativeStock(res.data.messages[0][0]);
+                gettdyhrsalesChartLine(res.data.messages[0][0]);
                
               })
               .catch(function (error) {
@@ -298,12 +332,12 @@ function StoreInfo({ name, ...props }) {
                 </div>
             </Col>
         </Row>
-        {showAlert?<Row>
+        {/* {showAlert?<Row>
             <Alert show={showAlert} variant="danger" onClose={() => setShowAlert(false)} dismissible>
                     <Alert.Heading>Negative stock Alert</Alert.Heading>
                     <p></p>
             </Alert>
-            </Row>:<></>}
+            </Row>:<></>} */}
         <Row className='rowStyle'>
             <Col>
             <Card>
@@ -391,7 +425,7 @@ function StoreInfo({ name, ...props }) {
                         </Table>
                         </Col>
                         <Col xs={12} md={7}>
-                        <div>
+                        <div className='pl-1'>
                             <div className="container pt-1">
                                 <div className="row align-items-stretch">
                                 <div className="c-dashboardInfo col-md-6">
@@ -456,14 +490,38 @@ function StoreInfo({ name, ...props }) {
             </Col>
         </Row>
         <Row className='rowStyle'>
-            <Col>
-                <Card>
-                    <Card.Body>Test1</Card.Body>
+            <Col xs={12} md={6}>
+                <Card style={{width:"100%",height:"300px"}} className="text-center p-1">
+                    <Card.Title>Sale Hours</Card.Title>
+                    <Card.Body>
+                        <LineChartComp/>
+                    </Card.Body>
                 </Card>
             </Col>
-            <Col>
-                <Card>
-                    <Card.Body>Test2</Card.Body>
+            <Col xs={12} md={6}>
+            <Card style={{width:"100%",height:"300px"}} className="text-center p-1">
+                    <Card.Title>Staff Performance</Card.Title>
+                    <Card.Body>
+                        <StackedBarComp/>
+                    </Card.Body>
+                </Card>
+            </Col>
+        </Row>
+        <Row className='rowStyle'>
+        <Col xs={12} md={6}>
+            <Card style={{width:"100%",height:"300px"}} className="text-center p-1">
+                    <Card.Title>Hourly Sale</Card.Title>
+                    <Card.Body>
+                        <PieChartComp/>
+                    </Card.Body>
+                </Card>
+            </Col>
+            <Col xs={12} md={6}>
+            <Card style={{width:"100%",height:"300px"}} className="text-center p-1">
+                    <Card.Title>Hourly Sale</Card.Title>
+                    <Card.Body>
+                        <BarChartComp/>
+                    </Card.Body>
                 </Card>
             </Col>
         </Row>
