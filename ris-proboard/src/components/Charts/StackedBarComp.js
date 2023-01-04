@@ -55,10 +55,10 @@ function StackedBarChartComp() {
   return (
     <>
     <ResponsiveContainer width="100%" height="100%">
-        <BarChart layout="vertical" data={data} margin={{left: 50, right: 50}} stackOffset="expand">
+        <BarChart data={data} margin={{left: 50, right: 50}}>
           <CartesianGrid strokeDasharray="3 3" />
-          {/* <XAxis  dataKey="name"/> */}
-          <YAxis dataKey="name"/>
+          <XAxis dataKey="name"/>
+          <YAxis/>
           <Tooltip />
           <Legend />
           <Bar dataKey="pv" stackId="a" fill="#615bd1" />

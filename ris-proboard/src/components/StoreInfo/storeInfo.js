@@ -2,7 +2,7 @@
 import React,{useState, useEffect} from 'react';
 import {useSelector, useDispatch} from "react-redux";
 import Badge from 'react-bootstrap/Badge';
-import {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details, set_selected_sbs} from '../../redux/storeFilter';
+import {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details, set_selected_sbs,set_str_Intel_hr_zoom} from '../../redux/storeFilter';
 
 import LineChartComp from '../Charts/LineChartComp';
 import BarChartComp from '../Charts/BarChartComp';
@@ -39,6 +39,7 @@ function StoreInfo({ name, ...props }) {
     const selected_store = useSelector((state)=>state.counter1.selected_store);
     const selected_sbs = useSelector((state)=>state.counter1.selected_sbs);
     const store_details = useSelector((state)=>state.counter1.store_details);
+    const zoomLevel = useSelector((state)=>state.counter1.str_Intel_hr_zoom);
 
     console.log(str_options,"StoreOptions");
   
@@ -46,6 +47,7 @@ function StoreInfo({ name, ...props }) {
 
     const [show, setShow] = useState(false);
     const [showAlert, setShowAlert] = useState(true);
+    const [zoom,setZoom] = useState(true);
     const [tdy_ttl_trans,set_tdy_ttl_trans] = useState(0);
     const [tdy_sold_qty,set_tdy_sold_qty] = useState(0);
     const [ohQty,setohQty] = useState(0);
@@ -59,32 +61,7 @@ function StoreInfo({ name, ...props }) {
     }
 
 
-    const gettdyhrsalesChartLine= async(a)=>{
-        try {
-            await axios.request({
-              method:'POST',
-              url:'http://localhost:3001/dashboard/tdyhrsalesChartLine',
-              headers:{
-                  'content-type':'application/json',
-              },
-              data:[{
-                  store_sid : a,
-
-              }]
-            })
-          .then(function (res) {
-            console.log("LINE_CHART",res.data);
-            // {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}           
-          })
-          .catch(function (error) {
-              console.error(error);
-          });
-  
-          } catch (error) {
-              console.log("axios error");
-          }
-}
-
+    
     const getnegativeStock = async(a)=>{
         try {
             await axios.request({
@@ -213,7 +190,6 @@ function StoreInfo({ name, ...props }) {
                 gettdayqtyttl(res.data.messages[0][0]);
                 getstoreOHqty(res.data.messages[0][0]);
                 getnegativeStock(res.data.messages[0][0]);
-                gettdyhrsalesChartLine(res.data.messages[0][0]);
                
               })
               .catch(function (error) {
@@ -282,7 +258,6 @@ function StoreInfo({ name, ...props }) {
         getStoreList();
         selected_store?fetchStoreData():setShow(false);
       }, [selected_store]);
-
 
   return (
     <>
@@ -492,7 +467,13 @@ function StoreInfo({ name, ...props }) {
         <Row className='rowStyle'>
             <Col xs={12} md={6}>
                 <Card style={{width:"100%",height:"300px"}} className="text-center p-1">
-                    <Card.Title>Sale Hours</Card.Title>
+                    <Card.Title style={{display:'flex',flexFlow:'row wrap'}}>
+                    <span style={{width:'33.33333%',textAlign:'left'}}></span>
+                    <span style={{width:'33.33333%',textAlign:'center'}}>{zoomLevel?'Sale Hours':'Active Sale Hours'}</span>
+                    <Form style={{fontSize:'13px',width:'33.33333%',textAlign:'right'}}>
+                        <span><Form.Check checked={zoomLevel} onChange={()=>dispatch(set_str_Intel_hr_zoom(!zoomLevel))} type="switch" id="custom-switch"/></span>
+                    </Form>
+                    </Card.Title>
                     <Card.Body>
                         <LineChartComp/>
                     </Card.Body>

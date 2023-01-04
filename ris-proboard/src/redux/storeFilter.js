@@ -5,7 +5,8 @@ const initialState = {
     sbs_filter_val:[],
     selected_store:null,
     store_details:[],
-    selected_sbs:null
+    selected_sbs:null,
+    str_Intel_hr_zoom:false
 }
 
 export const storeFilter = createSlice({
@@ -31,13 +32,17 @@ export const storeFilter = createSlice({
         set_selected_sbs: (state,action) =>{
             console.log(action.payload,"Payload from storeFileter.js");
             state.selected_sbs = action.payload;
+        },
+        set_str_Intel_hr_zoom:(state,action)=>{
+            console.log(action.payload,"ZoomLevel");
+            state.str_Intel_hr_zoom = action.payload;
         }
     }
 })
 
 
 //export actions
-export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs} = storeFilter.actions;
+export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs,set_str_Intel_hr_zoom} = storeFilter.actions;
 
 //export reducers
 export const abc =  storeFilter.reducer;
