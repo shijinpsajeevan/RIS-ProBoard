@@ -8,6 +8,7 @@ import LineChartComp from '../Charts/LineChartComp';
 import BarChartComp from '../Charts/BarChartComp';
 import StackedBarComp from '../Charts/StackedBarComp';
 import PieChartComp from '../Charts/PieChartComp';
+import BrushChartComp from '../Charts/BrushChartComp';
 
 // Import Axios Library
 import axios from 'axios';
@@ -262,7 +263,7 @@ function StoreInfo({ name, ...props }) {
   return (
     <>
     <Container fluid>
-        <Row className='rowStyle'>
+        <Row className='rowStyle' style={{position:`fixed`,top: 0,left: 0,zIndex: 999,width: `100%`,minHeight:`3rem`,backgroundImage:'linear-gradient(to right, #0f0c29, #302b63, #24243e)',marginLeft:'0'}}>
             <Col className='p-0'>
                 <div className='primaryHeaderBg'>
                 <h1 className="primaryHeader"> RIS Dashboard</h1>
@@ -276,7 +277,7 @@ function StoreInfo({ name, ...props }) {
                     <Offcanvas.Title>Filter</Offcanvas.Title>
                     </Offcanvas.Header>
                     <Offcanvas.Body>
-                    <FloatingLabel controlId="floatingSelect" label="Select Subsidiary">
+                    {/* <FloatingLabel controlId="floatingSelect" label="Select Subsidiary">
                         <Form.Select aria-label="Floating label select example" onChange={e=>saveStoreSid(e.target.value)} defaultValue={selected_store}>
                           {str_options.map((optionSet) => <option key={optionSet[0]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
                           {
@@ -284,7 +285,7 @@ function StoreInfo({ name, ...props }) {
                           }
                         </Form.Select>
                     </FloatingLabel>
-                    <br/>
+                    <br/> */}
                     <FloatingLabel controlId="floatingSelect" label="Select Store">
                         <Form.Select aria-label="Floating label select example" onChange={e=>saveStoreSid(e.target.value)} defaultValue={selected_store}>
                           {str_options.map((optionSet) => <option key={optionSet[0]} disabled={optionSet[4]===0?true:false} value={optionSet[0]}>{optionSet[3]}</option> )}
@@ -313,7 +314,7 @@ function StoreInfo({ name, ...props }) {
                     <p></p>
             </Alert>
             </Row>:<></>} */}
-        <Row className='rowStyle'>
+        <Row className='rowStyle' style={{marginTop:'4rem'}}>
             <Col>
             <Card>
                 <Card.Body>
@@ -491,12 +492,12 @@ function StoreInfo({ name, ...props }) {
         <Row className='rowStyle'>
         <Col xs={12} md={6}>
             <Card style={{width:"100%",height:"300px"}} className="text-center p-1">
-                    <Card.Title>Hourly Sale</Card.Title>
+                    <Card.Title>Transaction Overview</Card.Title>
                     <Card.Body>
-                        <PieChartComp/>
+                    <BrushChartComp/>
                     </Card.Body>
-                </Card>
-            </Col>
+            </Card>
+        </Col>
             <Col xs={12} md={6}>
             <Card style={{width:"100%",height:"300px"}} className="text-center p-1">
                     <Card.Title>Hourly Sale</Card.Title>
@@ -504,6 +505,16 @@ function StoreInfo({ name, ...props }) {
                         <BarChartComp/>
                     </Card.Body>
                 </Card>
+            </Col>
+        </Row>
+        <Row className='rowStyle'>
+            <Col xs={12} md={12}>
+            <Card style={{width:"100%",height:"80vh"}} className="text-center p-1">
+                    <Card.Title>Employee Statistics</Card.Title>
+                    <Card.Body>
+                        
+                    </Card.Body>
+            </Card>
             </Col>
         </Row>
     </Container>

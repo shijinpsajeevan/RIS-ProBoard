@@ -1,70 +1,82 @@
-import React from 'react'
+import React,{useState,useEffect} from 'react'
 import { ComposedChart,Bar,BarChart,LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {useSelector, useDispatch} from "react-redux";
 import Form from 'react-bootstrap/Form';
 
-const minHour=0;
-const maxHour=24;
-
-const data = [
-  {
-    name: 'Employee1',
-    uv: 4000,
-    pv: 2400,
-    amt: 2400,
-  },
-  {
-    name: 'Employee2',
-    uv: 3000,
-    pv: 1398,
-    amt: 2210,
-  },
-  {
-    name: 'Employee3',
-    uv: 2000,
-    pv: 9800,
-    amt: 2290,
-  },
-  {
-    name: 'Employee4',
-    uv: 2780,
-    pv: 3908,
-    amt: 2000,
-  },
-  {
-    name: 'Employee5',
-    uv: 1890,
-    pv: 4800,
-    amt: 2181,
-  },
-  {
-    name: 'Employee6',
-    uv: 2390,
-    pv: 3800,
-    amt: 2500,
-  },
-  {
-    name: 'Employee7',
-    uv: 3490,
-    pv: 4300,
-    amt: 2100,
-  },
-];
+// Import Axios Library
+import axios from 'axios';
 
 function StackedBarChartComp() {
+
+  const [barData,setBarData] = useState([])
+
+  const selected_store = useSelector((state)=>state.counter1.selected_store);
+
+  const gettdyempSaleChart= async()=>{
+    
+    try {
+        await axios.request({
+          method:'POST',
+          url:'http://localhost:3001/dashboard/tdyempSaleChart',
+          headers:{
+              'content-type':'application/json',
+          },
+          data:[{
+              store_sid : selected_store,
+          }]
+        })
+      .then(function (res) {
+        console.log("BAR_CHART",res.data);
+        
+        // {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}   
+        var barObj = res.data.map(([STORE_NO,STORE_CODE,CASHIER,ASSOCIATE,SOLD_QTY,EXT_PRICE,EXT_PRICE_WT,EXT_DISCOUNT,DISC_PERC,EXT_DISC_WT])=>({STORE_NO,STORE_CODE,CASHIER,ASSOCIATE,SOLD_QTY,EXT_PRICE,EXT_PRICE_WT,EXT_DISCOUNT,DISC_PERC,EXT_DISC_WT}))
+
+        console.log("BARCHART",barObj)
+        
+        setBarData(barObj)
+        // setLineData((old)=>[...old,lineObj])
+      })
+      .catch(function (error) {
+          console.error(error);
+          alert("err")
+      });
+
+      } catch (error) {
+          console.log("axios error");
+      }
+}
+
+  useEffect(() => {  
+    gettdyempSaleChart()
+
+    return () => {
+    }
+  },[selected_store])
 
   return (
     <>
     <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{left: 50, right: 50}}>
+        <BarChart data={barData} margin={{left: 50, right: 50}} layout='vertical'>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name"/>
+          <XAxis dataKey="EXT_PRICE" type='number'/>
+          <YAxis dataKey="ASSOCIATE" type='category'/>
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="EXT_PRICE" maxBarSize={30} stackId="a" fill="#615bd1" barSize='1'/>
+          <Bar dataKey="SOLD_QTY" maxBarSize={30} stackId="a" fill="hsla(173, 78%, 55%, 0.547)" />
+        </BarChart>
+      </ResponsiveContainer>
+    {/* <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={barData} margin={{left: 50, right: 50}}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="ASSOCIATE"/>
           <YAxis/>
           <Tooltip />
           <Legend />
-          <Bar dataKey="pv" stackId="a" fill="#615bd1" />
-          <Bar dataKey="uv" stackId="a" fill="hsla(173, 78%, 55%, 0.547)" />
+          <Bar dataKey="EXT_PRICE" stackId="a" fill="#615bd1" barSize='1'/>
+          <Bar dataKey="SOLD_QTY" stackId="a" fill="hsla(173, 78%, 55%, 0.547)" />
         </BarChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer> */}
       </>
   )
 }

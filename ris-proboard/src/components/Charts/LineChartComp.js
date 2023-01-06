@@ -11,9 +11,6 @@ function LineChartComp() {
 
   const selected_store = useSelector((state)=>state.counter1.selected_store);
 
-  const getCurrentState=async()=>{
-  }
-
   const gettdyhrsalesChartLine= async()=>{
     
     try {
@@ -52,10 +49,6 @@ function LineChartComp() {
 
   useEffect(() => {  
     gettdyhrsalesChartLine()
-    console.log(lineData,"MAP LineData");
-    console.log(lineData.slice(-1),"LAST MAP");
-    
-    getCurrentState()
 
     return () => {
     }
@@ -66,12 +59,12 @@ function LineChartComp() {
     <>
       <ResponsiveContainer>
       <ComposedChart width="100%" height={250} data={lineData}>
-      <XAxis dataKey="HOUR" />
-      <YAxis />
+      <XAxis dataKey="HOUR" label={{ value: 'HOUR', position:'insideRight' }} />
+      <YAxis dataKey="EXT_PRICE" label={{ value: 'Price',angle: -90, position: 'insideLeft' }} />
       <Tooltip />
       <Legend />
       <CartesianGrid stroke="#f5f5f5" />
-      <Bar dataKey="EXT_PRICE" barSize={20} fill="#413ea0cf" />
+      <Bar dataKey="EXT_PRICE" maxBarSize={30} fill="#413ea0cf" />
       <Line type="monotone" dataKey="SOLD_QTY" stroke="#ff7300" />
     </ComposedChart>
     </ResponsiveContainer>
