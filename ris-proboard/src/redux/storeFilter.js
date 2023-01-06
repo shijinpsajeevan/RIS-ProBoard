@@ -42,7 +42,7 @@ export const storeFilter = createSlice({
 
 
 //export actions
-export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs,set_str_Intel_hr_zoom} = storeFilter.actions;
+export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs,set_str_Intel_hr_zoom,set_empstatData} = storeFilter.actions;
 
 //export reducers
 export const abc =  storeFilter.reducer;
