@@ -5,18 +5,18 @@ import {useSelector} from "react-redux";
 // Import Axios Library
 import axios from 'axios';
 
-function BrushChartComp() {
+function YtdBrushChartComp() {
 
   const [brushData,setBrushData] = useState([])
 
   const selected_store = useSelector((state)=>state.counter1.selected_store);
 
-  const gettdytransBrushChart= async()=>{
+  const getytdtransBrushChart= async()=>{
     
     try {
         await axios.request({
           method:'POST',
-          url:'http://192.168.50.136:3001/dashboard/tdytransBrushChart',
+          url:'http://192.168.50.136:3001/dashboard/ytdtransBrushChart',
           headers:{
               'content-type':'application/json',
           },
@@ -46,7 +46,7 @@ function BrushChartComp() {
 }
 
   useEffect(() => {  
-    gettdytransBrushChart()
+    getytdtransBrushChart()
 
     return () => {
     }
@@ -84,4 +84,4 @@ function BrushChartComp() {
   )
 }
 
-export default BrushChartComp;
+export default YtdBrushChartComp;

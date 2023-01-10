@@ -15,8 +15,11 @@ import LineChartComp from "../Charts/LineChartComp";
 import BarChartComp from "../Charts/BarChartComp";
 import StackedBarComp from "../Charts/StackedBarComp";
 import PieChartComp from "../Charts/PieChartComp";
+import OuterPieChartComp from "../Charts/OuterPieChartComp";
 import BrushChartComp from "../Charts/BrushChartComp";
+import YtdBrushChartComp from "../Charts/YtdBrushChartComp";
 import EmpDailyStatTable from "../Tables/EmpDailyStatTable";
+import TenderDailyStatTable from "../Tables/TenderDailyStatTable";
 
 // Import Axios Library
 import axios from "axios";
@@ -57,7 +60,9 @@ function StoreInfo({ name, ...props }) {
   const [showAlert, setShowAlert] = useState(true);
   const [zoom, setZoom] = useState(true);
   const [tdy_ttl_trans, set_tdy_ttl_trans] = useState(0);
+  const [ytd_ttl_trans, set_ytd_ttl_trans] = useState(0);
   const [tdy_sold_qty, set_tdy_sold_qty] = useState(0);
+  const [ytd_sold_qty, set_ytd_sold_qty] = useState(0);
   const [ohQty, setohQty] = useState(0);
   const [negQty, setnegQqty] = useState(0);
 
@@ -73,7 +78,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/negativeStock",
+          url: "http://192.168.50.136:3001/dashboard/negativeStock",
           headers: {
             "content-type": "application/json",
           },
@@ -105,7 +110,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/storeOHqty",
+          url: "http://192.168.50.136:3001/dashboard/storeOHqty",
           headers: {
             "content-type": "application/json",
           },
@@ -137,7 +142,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/gettdaytransttl",
+          url: "http://192.168.50.136:3001/dashboard/gettdaytransttl",
           headers: {
             "content-type": "application/json",
           },
@@ -164,18 +169,51 @@ function StoreInfo({ name, ...props }) {
     }
   };
 
-  const gettdayqtyttl = async (a) => {
+  const getytdtransttl = async (a) => {
     try {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/qtysldtoday",
+          url: "http://192.168.50.136:3001/dashboard/getytdtransttl",
           headers: {
             "content-type": "application/json",
           },
           data: [
             {
               store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {
+            res.data.messages[0]
+              ? res.data.messages[0][0]
+                ? set_ytd_ttl_trans("AED " + res.data.messages[0][0])
+                : set_ytd_ttl_trans("AED " + 0)
+              : set_ytd_ttl_trans("AED " + 0);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
+  const gettdayqtyttl = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://192.168.50.136:3001/dashboard/qtysldtoday",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+              datePar:'09-JAN-2023'
             },
           ],
         })
@@ -196,6 +234,41 @@ function StoreInfo({ name, ...props }) {
     }
   };
 
+
+  const getytdqtyttl = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://192.168.50.136:3001/dashboard/qtysldyesterday",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+              datePar:'sysdate'
+            },
+          ],
+        })
+        .then(function (res) {
+          {
+            res.data.messages[0]
+              ? res.data.messages[0][0]
+                ? set_ytd_sold_qty(res.data.messages[0][0])
+                : set_ytd_sold_qty(0)
+              : set_ytd_sold_qty(0);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
+
   const fetchStoreData = async (btn) => {
     if (btn === "btn") {
       setShow(false);
@@ -204,7 +277,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/storeData",
+          url: "http://192.168.50.136:3001/dashboard/storeData",
           headers: {
             "content-type": "application/json",
           },
@@ -223,7 +296,9 @@ function StoreInfo({ name, ...props }) {
 
           //passing store sid to the function
           gettdaytransttl(res.data.messages[0][0]);
+          getytdtransttl(res.data.messages[0][0]);
           gettdayqtyttl(res.data.messages[0][0]);
+          getytdqtyttl(res.data.messages[0][0]);
           getstoreOHqty(res.data.messages[0][0]);
           getnegativeStock(res.data.messages[0][0]);
         })
@@ -245,7 +320,7 @@ function StoreInfo({ name, ...props }) {
         await axios
           .request({
             method: "POST",
-            url: "http://localhost:3001/dashboard/subsidiary",
+            url: "http://192.168.50.136:3001/dashboard/subsidiary",
             headers: {
               "content-type": "application/json",
             },
@@ -264,7 +339,7 @@ function StoreInfo({ name, ...props }) {
 
       // try {
       //     var sbs_list_OptionData=[];
-      //     await fetch("http://localhost:3001/dashboard/subsidiary").then((res)=>res.json()).then((data)=>sbs_list_OptionData=data.messages.rows);
+      //     await fetch("http://192.168.50.136:3001/dashboard/subsidiary").then((res)=>res.json()).then((data)=>sbs_list_OptionData=data.messages.rows);
       //     console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",sbs_list_OptionData);
       //     dispatch(set_sbs_filter_value(sbs_list_OptionData));
       // } catch (error) {
@@ -275,7 +350,7 @@ function StoreInfo({ name, ...props }) {
     async function getStoreList() {
       try {
         var str_list_OptionData = [];
-        await fetch("http://localhost:3001/dashboard")
+        await fetch("http://192.168.50.136:3001/dashboard")
           .then((res) => res.json())
           .then((data) => (str_list_OptionData = data.messages.rows));
         console.log(str_list_OptionData, "str_list_OptionData");
@@ -574,6 +649,32 @@ function StoreInfo({ name, ...props }) {
                         <div className="pl-1">
                           <div className="container pt-1">
                             <div className="row align-items-stretch">
+                            <div className="c-dashboardInfo col-md-6">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    Transaction Total
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {tdy_ttl_trans}
+                                  </span>
+                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
+                                    Yesterday: {ytd_ttl_trans}
+                                  </span>
+                                </div>
+                              </div>
                               <div className="c-dashboardInfo col-md-6">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
@@ -596,33 +697,7 @@ function StoreInfo({ name, ...props }) {
                                     {tdy_sold_qty}
                                   </span>
                                   <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    Yesterday: 0
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="c-dashboardInfo col-md-6">
-                                <div className="wrap">
-                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
-                                    Transaction Total
-                                    <svg
-                                      className="MuiSvgIcon-root-19"
-                                      focusable="false"
-                                      viewBox="0 0 24 24"
-                                      aria-hidden="true"
-                                      role="presentation"
-                                    >
-                                      <path
-                                        fill="none"
-                                        d="M0 0h24v24H0z"
-                                      ></path>
-                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
-                                    </svg>
-                                  </h4>
-                                  <span className="hind-font caption-12 c-dashboardInfo__count">
-                                    {tdy_ttl_trans}
-                                  </span>
-                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    Yesterday: 0
+                                    Yesterday: {ytd_sold_qty}
                                   </span>
                                 </div>
                               </div>
@@ -756,24 +831,45 @@ function StoreInfo({ name, ...props }) {
               style={{ width: "100%", height: "300px" }}
               className="text-center p-1"
             >
-              <Card.Title>Hourly Sale</Card.Title>
+              <Card.Title>Yesterday's Sale Chart</Card.Title>
               <Card.Body>
-                <BarChartComp />
+              <YtdBrushChartComp/>
               </Card.Body>
             </Card>
           </Col>
         </Row>
         <Row className="rowStyle">
           <Col xs={12} md={12}>
-            <Card
-              style={{ width: "100%", height: "80vh",backgroundColor:'rgba(255, 255, 255, 0.2)'}}
-              className="text-center p-1"
-            >
-              <Card.Title style={{color:'white'}}>Employee Statistics</Card.Title>
-              <Card.Body>
-                <div>
+            <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)'}}>
+              <Card.Title style={{background:'none',color:'white'}}>Employee Statistics</Card.Title>
+              <Card.Body >
                     <EmpDailyStatTable/>
-                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        <Row className="rowStyle">
+          <Col xs={12} md={6}>
+            <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',width: "100%", height: "400px"}}>
+              <Card.Title style={{background:'none',color:'white'}}>Discount Reason</Card.Title>
+              <Card.Body >
+                    <PieChartComp/>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col xs={12} md={6}>
+            <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',width: "100%", height: "400px"}}>
+              <Card.Title style={{background:'none',color:'white'}}>Tender Info</Card.Title>
+              <Card.Body >
+                    <OuterPieChartComp/>
+              </Card.Body>
+            </Card>
+          </Col>
+          <Col xs={12} md={12}>
+            <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',marginTop:'10px'}}>
+              <Card.Title style={{background:'none',color:'white'}}>Tender Info</Card.Title>
+              <Card.Body >
+                    <TenderDailyStatTable/>
               </Card.Body>
             </Card>
           </Col>

@@ -8,7 +8,7 @@ import axios from 'axios';
 import { Toolbar } from '@mui/material';
 
 
-const COLORS=['#0087fec9','#00c4a0c6','#ffbb28b8','#ff8142be'];
+const COLORS=['#ff8142be','#ffbb28b8','#00c4a0c6','#0087fec9',];
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
@@ -23,7 +23,7 @@ const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, per
   );
 };
 
-function PieChartComp() {
+function OuterPieChartComp() {
   
 const [pieData,setPieData] = useState([])
 const selected_store = useSelector((state)=>state.counter1.selected_store);
@@ -33,7 +33,7 @@ const gettdyhrsalesChartLine= async()=>{
   try {
       await axios.request({
         method:'POST',
-        url:'http://192.168.50.136:3001/dashboard/discountPieChart',
+        url:'http://192.168.50.136:3001/dashboard/tdyTenderStatTable',
         headers:{
             'content-type':'application/json',
         },
@@ -73,23 +73,21 @@ useEffect(() => {
     <PieChart width={400} height={400}>
     <Tooltip/>
     <Legend/>
-          <Pie
-            data={pieData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={renderCustomizedLabel}
-            outerRadius={120}
-            fill="#8884d8"
-            dataKey="value"
-          >
-            {pieData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
+    <Pie
+          data={pieData}
+          innerRadius={60}
+          outerRadius={120}
+          fill="#8884d8"
+          paddingAngle={5}
+          dataKey="value"
+        >
+          {pieData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
         </PieChart>
   </ResponsiveContainer>
   )
 }
 
-export default PieChartComp;
+export default OuterPieChartComp;

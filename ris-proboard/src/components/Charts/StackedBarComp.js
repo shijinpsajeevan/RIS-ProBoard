@@ -17,7 +17,7 @@ function StackedBarChartComp() {
     try {
         await axios.request({
           method:'POST',
-          url:'http://localhost:3001/dashboard/tdyempSaleChart',
+          url:'http://192.168.50.136:3001/dashboard/tdyempSaleChart',
           headers:{
               'content-type':'application/json',
           },
@@ -38,7 +38,6 @@ function StackedBarChartComp() {
       })
       .catch(function (error) {
           console.error(error);
-          alert("err")
       });
 
       } catch (error) {
