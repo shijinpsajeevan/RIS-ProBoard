@@ -28,12 +28,12 @@ function PieChartComp() {
 const [pieData,setPieData] = useState([])
 const selected_store = useSelector((state)=>state.counter1.selected_store);
 
-const gettdyhrsalesChartLine= async()=>{
+const gettdyDiscPieChart= async()=>{
 
   try {
       await axios.request({
         method:'POST',
-        url:'http://192.168.50.136:3001/dashboard/discountPieChart',
+        url:'http://localhost:3001/dashboard/discountPieChart',
         headers:{
             'content-type':'application/json',
         },
@@ -62,7 +62,7 @@ const gettdyhrsalesChartLine= async()=>{
 }
 
 useEffect(() => {  
-  gettdyhrsalesChartLine()
+  gettdyDiscPieChart()
 
   return () => {
   }

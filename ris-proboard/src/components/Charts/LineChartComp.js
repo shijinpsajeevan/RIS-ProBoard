@@ -16,7 +16,7 @@ function LineChartComp() {
     try {
         await axios.request({
           method:'POST',
-          url:'http://192.168.50.136:3001/dashboard/tdyhrsalesChartLine',
+          url:'http://localhost:3001/dashboard/tdyhrsalesChartLine',
           headers:{
               'content-type':'application/json',
           },
@@ -60,11 +60,11 @@ function LineChartComp() {
       <ResponsiveContainer>
       <ComposedChart width="100%" height={250} data={lineData}>
       <XAxis dataKey="HOUR" label={{ value: 'HOUR', position:'insideRight' }} />
-      <YAxis dataKey="EXT_PRICE" label={{ value: 'Price',angle: -90, position: 'insideLeft' }} />
+      <YAxis dataKey="EXT_PRICE_WT" label={{ value: 'Price',angle: -90, position: 'insideLeft' }} />
       <Tooltip />
       <Legend />
       <CartesianGrid stroke="#f5f5f5" />
-      <Bar dataKey="EXT_PRICE" maxBarSize={30} fill="#413ea0cf" />
+      <Bar dataKey="EXT_PRICE_WT" maxBarSize={30} fill="#413ea0cf" label={{angle: -90, position: 'center', fontSize:'12',fill:'white'}}/>
       <Line type="monotone" dataKey="SOLD_QTY" stroke="#ff7300" />
     </ComposedChart>
     </ResponsiveContainer>

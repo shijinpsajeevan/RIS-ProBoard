@@ -1,10 +1,8 @@
 const connectDB = require('./connection');
 const router = require('express').Router();
 const oracledb = require('oracledb');
-const OracleDB = require('oracledb');
 
 router.get("/",async(req,res)=>{
-
 let connection;
 (async function(){
     try{
@@ -198,7 +196,7 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request");
-            await connection.execute(`SELECT sum(decode(a.item_type,2,a.qty*-1,a.qty)) FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE TRUNC(a.created_datetime) = :datePar AND c.sid=:id GROUP BY TRUNC(a.created_datetime)`,[req.body[0].datePar,req.body[0].store_sid],{
+            await connection.execute(`SELECT sum(decode(a.item_type,2,a.qty*-1,a.qty)) FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE TRUNC(a.created_datetime)=TRUNC(sysdate) AND c.sid=:id GROUP BY TRUNC(a.created_datetime)`,[req.body[0].store_sid],{
                 fetchInfo : { 
                   
                 }
@@ -235,7 +233,7 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request");
-            await connection.execute(`SELECT sum(decode(a.item_type,2,a.qty*-1,a.qty)) FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE TRUNC(a.created_datetime) = TRUNC(sysdate-1) AND c.sid=:id GROUP BY TRUNC(a.created_datetime)`,[req.body[0].store_sid],{
+            await connection.execute(`SELECT sum(decode(a.item_type,2,a.qty*-1,a.qty)) FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE TRUNC(a.created_datetime)=TRUNC(sysdate-1) AND c.sid=:id GROUP BY TRUNC(a.created_datetime)`,[req.body[0].store_sid],{
                 fetchInfo : { 
                 }
               },function(err,result){
@@ -344,7 +342,7 @@ let connection;
             console.log("Axios request received with request body:",req.body[0].store_sid);
             await connection.execute(`select a.store_code,a.employee1_full_name,to_char(a.created_Datetime,'YYYY') "YEAR",to_char(a.created_Datetime,'MON') "MONTH",to_char(a.created_datetime,'HH24') HR,sum(decode(b.item_type,2,b.qty*-1,b.qty)) Sold_Qty,sum(decode(b.item_type,2,b.qty*-1,0)) Return_Qty,round(sum(decode(b.item_type,2,b.qty*-1,b.qty)*(b.price - b.tax_amt)),2) Ext_prc,round(sum(decode(b.item_type,2,b.qty*-1,b.qty)*(b.orig_price - b.tax_amt)),2) EXT_orig,round((sum(decode(b.item_type,2,b.qty*-1,b.qty)*(b.orig_price - b.tax_amt))-sum(decode(b.item_type,2,b.qty-1,b.qty)*(b.price - b.tax_amt))),2) EXT_Disc,round(sum(decode(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2) EXT_Price_WT,round((sum(decode(b.item_type,2,b.qty*-1,b.qty)*(b.orig_price))-sum(decode(b.item_type,2,b.qty-1,b.qty)*(b.price))),2) EXT_disc_WT from rps.document a,rps.document_item b,rps.subsidiary s,rps.dcs d,rps.invn_sbs_item i where a.sid=b.doc_sid and a.sbs_no=s.sbs_no and s.sid=d.sbs_sid and b.sbs_no=s.sbs_no and b.dcs_code=d.dcs_code and b.invn_sbs_item_sid=i.sid and s.sid=i.sbs_sid and a.receipt_type in (0,1) and b.item_type in (1,2) and a.status=4 and a.store_sid=:id and trunc(a.created_datetime)=trunc(sysdate) group by a.store_code,a.employee1_full_name,trunc(a.created_Datetime),to_char(a.created_datetime,'HH24'),to_char(a.created_Datetime,'YYYY'),to_char(a.created_Datetime,'MON') order by trunc(a.created_Datetime) asc,to_char(a.created_datetime,'HH24') asc`,[req.body[0].store_sid],{
                 fetchInfo : { 
-                    
+                    "EXT_PRICE_WT" : {type:oracledb.STRING}
                 }
               },function(err,result){
                 console.log("Start",result,"Result from server /hourlySalesChart")
@@ -420,7 +418,7 @@ let connection;
             console.log("Axios request received with request body:",req.body[0].store_sid);
             await connection.execute(`SELECT a.doc_no AS "RCPT NO",TRUNC(a.created_datetime)AS "RCPT DATE",TO_CHAR(a.created_datetime,'hh:mi:ss am') AS "RCPT TIME",SUM(((CASE WHEN b.item_type=2 THEN b.qty*- 1 ELSE b.qty END)))AS "SOLD QTY",SUM(((CASE WHEN b.item_type=2 THEN b.qty*-1 END)))AS "RETURN QTY",SUM(round((((CASE WHEN b.item_type=2 THEN b.qty*- 1 ELSE b.qty END)*(b.orig_price-b.tax_amt))-((CASE WHEN b.item_type=2 THEN b.qty*- 1 ELSE b.qty END)*(b.price-b.tax_amt))),2))disc,SUM(ROUND(((CASE WHEN b.item_type=2 THEN b.qty*-1 ELSE b.qty END)*(b.price)),2)) AS "EXT PRICE W TAX" FROM rps.document a INNER JOIN rps.document_item b ON a.sid=b.doc_sid INNER JOIN rps.subsidiary s ON a.sbs_no=s.sbs_no AND b.sbs_no=s.sbs_no INNER JOIN rps.store st ON st.sid=a.store_sid INNER JOIN rps.invn_sbs_item i ON i.sid=b.invn_sbs_item_sid WHERE a.receipt_type IN (0, 1) AND b.item_type IN (1,2) AND a.status=4 AND a.store_sid=:id AND trunc(a.created_datetime)=trunc(sysdate) GROUP BY s.sbs_name,a.store_code,a.doc_no,TRUNC(a.created_datetime),TO_CHAR(a.created_datetime,'hh:mi:ss am') ORDER BY a.doc_no ASC`,[req.body[0].store_sid],{
                 fetchInfo : { 
-                    "EXT PRICE W TAX" : {type:OracleDB.STRING}
+                    "EXT PRICE W TAX" : {type:oracledb.STRING}
                 }
               },function(err,result){
                 console.log("Start",result,"Result from server /tdytransBrushChart")
@@ -457,7 +455,7 @@ let connection;
             console.log("Axios request received with request body:",req.body[0].store_sid);
             await connection.execute(`SELECT a.doc_no AS "RCPT NO",TRUNC(a.created_datetime)AS "RCPT DATE",TO_CHAR(a.created_datetime,'hh:mi:ss am') AS "RCPT TIME",SUM(((CASE WHEN b.item_type=2 THEN b.qty*- 1 ELSE b.qty END)))AS "SOLD QTY",SUM(((CASE WHEN b.item_type=2 THEN b.qty*-1 END)))AS "RETURN QTY",SUM(round((((CASE WHEN b.item_type=2 THEN b.qty*- 1 ELSE b.qty END)*(b.orig_price-b.tax_amt))-((CASE WHEN b.item_type=2 THEN b.qty*- 1 ELSE b.qty END)*(b.price-b.tax_amt))),2))disc,SUM(ROUND(((CASE WHEN b.item_type=2 THEN b.qty*-1 ELSE b.qty END)*(b.price)),2)) AS "EXT PRICE W TAX" FROM rps.document a INNER JOIN rps.document_item b ON a.sid=b.doc_sid INNER JOIN rps.subsidiary s ON a.sbs_no=s.sbs_no AND b.sbs_no=s.sbs_no INNER JOIN rps.store st ON st.sid=a.store_sid INNER JOIN rps.invn_sbs_item i ON i.sid=b.invn_sbs_item_sid WHERE a.receipt_type IN (0, 1) AND b.item_type IN (1,2) AND a.status=4 AND a.store_sid=:id AND trunc(a.created_datetime)=trunc(sysdate-1) GROUP BY s.sbs_name,a.store_code,a.doc_no,TRUNC(a.created_datetime),TO_CHAR(a.created_datetime,'hh:mi:ss am') ORDER BY a.doc_no ASC`,[req.body[0].store_sid],{
                 fetchInfo : { 
-                    "EXT PRICE W TAX" : {type:OracleDB.STRING}
+                    "EXT PRICE W TAX" : {type:oracledb.STRING}
                 }
               },function(err,result){
                 console.log("Start",result,"Result from server /ytdtransBrushChart")
@@ -493,11 +491,12 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request received with request body:",req.body[0].store_sid);
-            await connection.execute(`SELECT b.employee1_sid as EMP_SID,b.employee1_full_name AS EMPLOYEE,COUNT(DISTINCT(a.sid))AS DOC_COUNT,SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))AS Doc_Qty,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)AS Sale_Total,ROUND((ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)/COUNT(DISTINCT(a.sid))),2) AS AVG_BKT,SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))/COUNT(DISTINCT(a.sid)) AS UPT,SUM(ROUND((((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.ORIG_PRICE))-((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE))),2)) AS "DISC AMT" FROM RPS.document a,RPS.document_item b,RPS.document_disc c WHERE TRUNC(a.created_datetime)=TRUNC(sysdate) AND b.doc_sid=a.sid AND a.store_sid=:id GROUP BY b.employee1_full_name,b.employee1_sid`,[req.body[0].store_sid],{
+            await connection.execute(`SELECT b.employee1_sid as EMP_SID,b.employee1_full_name AS EMPLOYEE,COUNT(DISTINCT(a.sid))AS DOC_COUNT,SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))AS Doc_Qty,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)AS Sale_Total,ROUND((ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)/COUNT(DISTINCT(a.sid))),2) AS AVG_BKT,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))/COUNT(DISTINCT(a.sid)),2) AS UPT,ROUND(SUM(ROUND((((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.ORIG_PRICE))-((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE))),2)),2) AS "DISC AMT" FROM rps.document a join rps.document_item b on b.doc_sid = a.sid LEFT join rps.document_disc c on c.doc_sid = a.sid WHERE TRUNC(a.created_datetime)=TRUNC(sysdate) and a.receipt_type in (0,1)and b.item_type in (1,2) and a.status =4AND a.store_sid=:id GROUP BY b.employee1_full_name,b.employee1_sid`,[req.body[0].store_sid],{
                 fetchInfo : { 
-                    "EMP_SID" : {type:OracleDB.STRING},
-                    "SALE_TOTAL" : {type:OracleDB.STRING},
-                    "AVG_BKT" : {type:OracleDB.STRING}
+                    "EMP_SID" : {type:oracledb.STRING},
+                    "SALE_TOTAL" : {type:oracledb.STRING},
+                    "AVG_BKT" : {type:oracledb.STRING},
+                    "DISC AMT": {type:oracledb.STRING}
                 }
               },function(err,result){
                 console.log("Start",result,"Result from server /tdyEmpStatTable")
@@ -534,7 +533,7 @@ let connection;
             console.log("Axios request received with request body:",req.body[0].store_sid);
             await connection.execute(`SELECT DECODE(A.TENDER_TYPE,6,'Split',DECODE(A.TENDER_NAME,NULL,'Credit Card',A.TENDER_NAME)) AS TENDER,SUM(ROUND(((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE)), 2)) AS "EXT PRICE W TAX" FROM RPS.DOCUMENT A INNER JOIN RPS.DOCUMENT_ITEM B ON B.DOC_SID = A.SID WHERE A.RECEIPT_TYPE IN(0, 1) AND B.ITEM_TYPE IN(1, 2) AND A.STATUS=4 AND TRUNC(A.CREATED_DATETIME)BETWEEN trunc(sysdate) AND trunc(sysdate) AND a.store_sid=:id GROUP BY A.STORE_NAME,DECODE(A.TENDER_TYPE,6,'Split',DECODE(A.TENDER_NAME, NULL,'Credit Card',A.TENDER_NAME))`,[req.body[0].store_sid],{
                 fetchInfo : { 
-                    "EMP_SID" : {type:OracleDB.STRING},
+                    "EMP_SID" : {type:oracledb.STRING},
                 }
               },function(err,result){
                 console.log("Start",result,"Result from server /tdyTenderStatTable")
@@ -569,12 +568,49 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request received with request body:",req.body[0].store_sid);
-            await connection.execute(`select DECODE(di.discount_reason,NULL,'Not Specified',di.discount_reason) AS "Reason",sum(round(di.disc_amt,2)) as "Discount Amount" from rps.document do inner join rps.document_item di on do.sid=di.doc_sid inner join rps.subsidiary s on do.sbs_no=s.sbs_no and di.sbs_no=s.sbs_no inner join rps.dcs d on s.sid=d.sbs_sid and di.dcs_code = d.dcs_code inner join rps.store st on do.store_sid=st.sid inner join rps.invn_sbs_item i on di.invn_sbs_item_sid = i.sid and s.sid = i.sbs_sid inner join rps.vendor v on i.vend_sid=v.sid where do.receipt_type in ( 0, 1 ) and di.item_type in (1,2) and do.status = 4 and di.disc_amt <> 0 and trunc(do.created_datetime)=trunc(sysdate) and do.store_sid=:id group by do.sbs_no,st.store_code,di.discount_reason,do.store_code order by do.sbs_no,do.store_code`,[req.body[0].store_sid],{
+            await connection.execute(`select DECODE(di.discount_reason,NULL,'Not Specified',di.discount_reason) AS "Reason",ROUND(SUM(di.disc_amt),1) as "Discount_Amt" from rps.document do inner join rps.document_item di on do.sid=di.doc_sid inner join rps.subsidiary s on do.sbs_no=s.sbs_no and di.sbs_no=s.sbs_no inner join rps.dcs d on s.sid=d.sbs_sid and di.dcs_code = d.dcs_code inner join rps.store st on do.store_sid=st.sid inner join rps.invn_sbs_item i on di.invn_sbs_item_sid = i.sid and s.sid = i.sbs_sid inner join rps.vendor v on i.vend_sid=v.sid where do.receipt_type in ( 0, 1 ) and di.item_type in (1,2) and do.status=4 and di.disc_amt <> 0 and trunc(do.created_datetime)=trunc(sysdate) and do.store_sid=:id group by do.sbs_no,st.store_code,di.discount_reason,do.store_code order by do.sbs_no,do.store_code`,[req.body[0].store_sid],{
                 fetchInfo : { 
-                    
+                    "DISCOUNT_AMT" : {type:oracledb.STRING},
                 }
               },function(err,result){
                 console.log("Start",result,"Result from server /discountPieChart")
+                result?res.json(result.rows):res.json({messages:[]})
+            });
+    
+        } catch(err){
+            console.log(err);
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+// Store Discount --START
+
+
+// Today Store Discount --START
+    // START
+    router.post("/gettdydisctotal",async(req,res)=>{
+        console.log(req.body[0].store_sid,"/gettdydisctotal")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request received with request body:",req.body[0].store_sid,"TODAYSDISOCUNTTOTAL");
+            await connection.execute(`SELECT SUM(ROUND((((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.ORIG_PRICE ))-((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE))),2))AS "DISC AMT" FROM RPS.DOCUMENT A JOIN RPS.DOCUMENT_ITEM B ON A.SID=B.DOC_SID WHERE A.RECEIPT_TYPE IN(0,1) AND B.ITEM_TYPE IN(1,2) AND A.STATUS=4 AND A.STORE_SID=:id AND TRUNC(A.CREATED_DATETIME)=TRUNC(sysdate)`,[req.body[0].store_sid],{
+                fetchInfo : { 
+                    "DISC AMT" : {type:oracledb.STRING},
+                }
+              },function(err,result){
+                console.log("Start",result,"Result from server /gettdydisctotal")
                 result?res.json(result.rows):res.json({messages:[]})
             });
     

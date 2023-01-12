@@ -33,7 +33,7 @@ const gettdyhrsalesChartLine= async()=>{
   try {
       await axios.request({
         method:'POST',
-        url:'http://192.168.50.136:3001/dashboard/tdyTenderStatTable',
+        url:'http://localhost:3001/dashboard/tdyTenderStatTable',
         headers:{
             'content-type':'application/json',
         },
@@ -80,7 +80,7 @@ useEffect(() => {
           fill="#8884d8"
           paddingAngle={5}
           dataKey="value"
-        >
+          label={{angle: 0,fontSize:'15',fill:'white'}} >
           {pieData.map((entry, index) => (
             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
           ))}

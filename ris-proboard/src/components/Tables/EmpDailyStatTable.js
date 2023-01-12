@@ -22,7 +22,7 @@ function EmpDailyStatTable() {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/tdyEmpStatTable",
+          url: "http://localhost:3001/dashboard/tdyEmpStatTable",
           headers: {
             "content-type": "application/json",
           },
@@ -81,6 +81,12 @@ function EmpDailyStatTable() {
       {
         accessorKey: 'EMPLOYEE', //access nested data with dot notation
         header: 'ASSOCIATE NAME',
+        muiTableHeadCellProps: {
+          align: 'center',
+        },
+        muiTableBodyCellProps: {
+          align: 'center',
+        }
       },
       {
         accessorKey: 'DOCUMENT_COUNT', //access nested data with dot notation
@@ -95,7 +101,7 @@ function EmpDailyStatTable() {
         AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
         Footer: () => (
           <Stack>
-            Total Doc Qty:
+            Total Doc Qty
             <Box color="warning.main">{Math.round(totalDocQty*100)/100 }</Box>
           </Stack>
         )
@@ -108,7 +114,7 @@ function EmpDailyStatTable() {
         AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
         Footer: () => (
           <Stack>
-            Total Sale:
+            Total Sale
             <Box color="warning.main">{Math.round(totalSalary*100)/100 }</Box>
           </Stack>
         )
@@ -121,7 +127,7 @@ function EmpDailyStatTable() {
         AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
         Footer: () => (
           <Stack>
-            Average ATV:
+            Average ATV
             <Box color="warning.main">{Math.round(avgofATV*100)/100?Math.round(avgofATV*100)/100:0}</Box>
           </Stack>
         )
@@ -134,7 +140,7 @@ function EmpDailyStatTable() {
         AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
         Footer: () => (
           <Stack>
-            Average UPT:
+            Average UPT
             <Box color="warning.main">{Math.round(avgofUPT*100)/100?Math.round(avgofUPT*100)/100:0}</Box>
           </Stack>
         )
@@ -147,7 +153,7 @@ function EmpDailyStatTable() {
         AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
         Footer: () => (
           <Stack>
-            Total Discount:
+            Total Discount
             <Box color="warning.main">{Math.round(totalDiscount*100)/100 }</Box>
           </Stack>
         )
@@ -163,7 +169,7 @@ function EmpDailyStatTable() {
       </Box>
     )} initialState={{
       density: 'compact'
-    }}/>
+    }} enablePagination={false}/>
   )
 }
 export default EmpDailyStatTable;

@@ -19,7 +19,7 @@ function LineChartComp() {
     try {
         await axios.request({
           method:'POST',
-          url:'http://192.168.50.136:3001/dashboard/tdyhrsalesChartLine',
+          url:'http://localhost:3001/dashboard/tdyhrsalesChartLine',
           headers:{
               'content-type':'application/json',
           },

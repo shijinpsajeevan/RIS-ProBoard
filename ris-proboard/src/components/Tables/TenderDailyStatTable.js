@@ -22,7 +22,7 @@ function TenderDailyStatTable() {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/tdyTenderStatTable",
+          url: "http://localhost:3001/dashboard/tdyTenderStatTable",
           headers: {
             "content-type": "application/json",
           },
@@ -65,16 +65,27 @@ function TenderDailyStatTable() {
       {
         accessorKey: 'TENDER', //access nested data with dot notation
         header: 'TENDER TYPE',
+        muiTableHeadCellProps: {
+          align: 'center',
+        },
+        muiTableBodyCellProps: {
+          align: 'center',
+        },
       },
       {
         accessorKey: 'AMOUNT', //access nested data with dot notation
         header: 'AMOUNT',
+        muiTableHeadCellProps: {
+          align: 'center',
+        },
+        muiTableBodyCellProps: {
+          align: 'center',
+        },
         enableGrouping: false, //do not let this column be grouped
         AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
         Footer: () => (
-          <Stack>
-            Total Amount :
-            <Box color="warning.main">{Math.round(totalAmount*100)/100 }</Box>
+          <Stack alignItems={'center'}>
+            Total Amount <Box color="warning.main">{Math.round(totalAmount*100)/100 }</Box>
           </Stack>
         )
       }
@@ -89,7 +100,7 @@ function TenderDailyStatTable() {
       </Box>
     )} initialState={{
       density: 'compact'
-    }}/>
+    }} enablePagination={false} />
   )
 }
 export default TenderDailyStatTable;

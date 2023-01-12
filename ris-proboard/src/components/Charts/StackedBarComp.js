@@ -17,7 +17,7 @@ function StackedBarChartComp() {
     try {
         await axios.request({
           method:'POST',
-          url:'http://192.168.50.136:3001/dashboard/tdyempSaleChart',
+          url:'http://localhost:3001/dashboard/tdyempSaleChart',
           headers:{
               'content-type':'application/json',
           },
@@ -57,12 +57,12 @@ function StackedBarChartComp() {
     <ResponsiveContainer width="100%" height="100%">
         <BarChart data={barData} margin={{left: 50, right: 50}} layout='vertical'>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="EXT_PRICE" type='number'/>
+          <XAxis dataKey="EXT_PRICE" type='number' label={{ value: 'Price', position: 'insideBottomRight', offset:'-10'}}/>
           <YAxis dataKey="ASSOCIATE" type='category'/>
           <Tooltip />
           <Legend />
-          <Bar dataKey="EXT_PRICE" maxBarSize={30} stackId="a" fill="#615bd1" barSize='1'/>
-          <Bar dataKey="SOLD_QTY" maxBarSize={30} stackId="a" fill="hsla(173, 78%, 55%, 0.547)" />
+          <Bar dataKey="EXT_PRICE" maxBarSize={30} stackId="a" fill="#615bd1" barSize='1' label={{position: 'insideBottomRight',fontSize:'12', fill:'white'}}/>
+          <Bar dataKey="SOLD_QTY" maxBarSize={30}  fill="hsla(173, 78%, 55%, 0.547)" label={{position: 'right',fontSize:'12', fill:'grey'}} />
         </BarChart>
       </ResponsiveContainer>
     {/* <ResponsiveContainer width="100%" height="100%">

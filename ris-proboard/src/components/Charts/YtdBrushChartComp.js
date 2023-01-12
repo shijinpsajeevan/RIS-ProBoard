@@ -16,7 +16,7 @@ function YtdBrushChartComp() {
     try {
         await axios.request({
           method:'POST',
-          url:'http://192.168.50.136:3001/dashboard/ytdtransBrushChart',
+          url:'http://localhost:3001/dashboard/ytdtransBrushChart',
           headers:{
               'content-type':'application/json',
           },
@@ -74,8 +74,8 @@ function YtdBrushChartComp() {
           <Legend verticalAlign="top" wrapperStyle={{ lineHeight: '40px' }} />
           <ReferenceLine y={0} stroke="#000" />
           <Brush dataKey="name" height={30} stroke="#8884d8" />
-          <Bar dataKey="EXT_PRICE_W_TAX" stackId="a" fill="#8884d8" />
-          <Bar dataKey="DISCOUNT" stackId="a" fill="#21e0d0" />
+          <Bar dataKey="EXT_PRICE_W_TAX" stackId="a" fill="#8884d8" label={{angle: -90, position: 'insideTop', fontSize:'8',fill:'white', offset:'15'}}/>
+          <Bar dataKey="DISCOUNT" stackId="a" fill="#21e0d0" label={{angle: -90, position: 'inside', fontSize:'8',offset:'15'}}/>
           <Bar dataKey="SOLD_QTY" fill="#82ca9d" />
           <Bar dataKey="RETURN_QTY" fill="#f0c504" />
         </BarChart>

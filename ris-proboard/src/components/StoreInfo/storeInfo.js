@@ -60,6 +60,7 @@ function StoreInfo({ name, ...props }) {
   const [showAlert, setShowAlert] = useState(true);
   const [zoom, setZoom] = useState(true);
   const [tdy_ttl_trans, set_tdy_ttl_trans] = useState(0);
+  const [tdy_disc_total,set_tdy_disc_total] = useState(0);
   const [ytd_ttl_trans, set_ytd_ttl_trans] = useState(0);
   const [tdy_sold_qty, set_tdy_sold_qty] = useState(0);
   const [ytd_sold_qty, set_ytd_sold_qty] = useState(0);
@@ -73,12 +74,40 @@ function StoreInfo({ name, ...props }) {
     dispatch(set_selected_store(str_sid));
   };
 
+
+  const gettdydisctotal = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dashboard/gettdydisctotal",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {res.data?set_tdy_disc_total("AED "+res.data):set_tdy_disc_total(0);}  
+          // {res.data.messages[0]? res.data.messages[0][0]? set_tdy_disc_total(res.data.messages[0][0]): set_tdy_disc_total(0): set_tdy_disc_total(0);}
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
   const getnegativeStock = async (a) => {
     try {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/negativeStock",
+          url: "http://localhost:3001/dashboard/negativeStock",
           headers: {
             "content-type": "application/json",
           },
@@ -110,7 +139,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/storeOHqty",
+          url: "http://localhost:3001/dashboard/storeOHqty",
           headers: {
             "content-type": "application/json",
           },
@@ -142,7 +171,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/gettdaytransttl",
+          url: "http://localhost:3001/dashboard/gettdaytransttl",
           headers: {
             "content-type": "application/json",
           },
@@ -174,7 +203,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/getytdtransttl",
+          url: "http://localhost:3001/dashboard/getytdtransttl",
           headers: {
             "content-type": "application/json",
           },
@@ -206,14 +235,13 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/qtysldtoday",
+          url: "http://localhost:3001/dashboard/qtysldtoday",
           headers: {
             "content-type": "application/json",
           },
           data: [
             {
-              store_sid: a,
-              datePar:'09-JAN-2023'
+              store_sid: a
             },
           ],
         })
@@ -240,14 +268,13 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/qtysldyesterday",
+          url: "http://localhost:3001/dashboard/qtysldyesterday",
           headers: {
             "content-type": "application/json",
           },
           data: [
             {
-              store_sid: a,
-              datePar:'sysdate'
+              store_sid: a
             },
           ],
         })
@@ -277,7 +304,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://192.168.50.136:3001/dashboard/storeData",
+          url: "http://localhost:3001/dashboard/storeData",
           headers: {
             "content-type": "application/json",
           },
@@ -301,6 +328,7 @@ function StoreInfo({ name, ...props }) {
           getytdqtyttl(res.data.messages[0][0]);
           getstoreOHqty(res.data.messages[0][0]);
           getnegativeStock(res.data.messages[0][0]);
+          gettdydisctotal(res.data.messages[0][0]);
         })
         .catch(function (error) {
           console.error(error);
@@ -320,7 +348,7 @@ function StoreInfo({ name, ...props }) {
         await axios
           .request({
             method: "POST",
-            url: "http://192.168.50.136:3001/dashboard/subsidiary",
+            url: "http://localhost:3001/dashboard/subsidiary",
             headers: {
               "content-type": "application/json",
             },
@@ -339,7 +367,7 @@ function StoreInfo({ name, ...props }) {
 
       // try {
       //     var sbs_list_OptionData=[];
-      //     await fetch("http://192.168.50.136:3001/dashboard/subsidiary").then((res)=>res.json()).then((data)=>sbs_list_OptionData=data.messages.rows);
+      //     await fetch("http://localhost:3001/dashboard/subsidiary").then((res)=>res.json()).then((data)=>sbs_list_OptionData=data.messages.rows);
       //     console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",sbs_list_OptionData);
       //     dispatch(set_sbs_filter_value(sbs_list_OptionData));
       // } catch (error) {
@@ -350,7 +378,7 @@ function StoreInfo({ name, ...props }) {
     async function getStoreList() {
       try {
         var str_list_OptionData = [];
-        await fetch("http://192.168.50.136:3001/dashboard")
+        await fetch("http://localhost:3001/dashboard")
           .then((res) => res.json())
           .then((data) => (str_list_OptionData = data.messages.rows));
         console.log(str_list_OptionData, "str_list_OptionData");
@@ -649,7 +677,7 @@ function StoreInfo({ name, ...props }) {
                         <div className="pl-1">
                           <div className="container pt-1">
                             <div className="row align-items-stretch">
-                            <div className="c-dashboardInfo col-md-6">
+                            <div className="c-dashboardInfo col-md-6 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Transaction Total
@@ -675,7 +703,7 @@ function StoreInfo({ name, ...props }) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-6">
+                              <div className="c-dashboardInfo col-md-6 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Quantity Sold
@@ -701,7 +729,7 @@ function StoreInfo({ name, ...props }) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-6">
+                              <div className="c-dashboardInfo col-md-6 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Available Stock
@@ -727,7 +755,7 @@ function StoreInfo({ name, ...props }) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-6">
+                              {/* <div className="c-dashboardInfo col-md-4 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Negative Stock
@@ -755,7 +783,85 @@ function StoreInfo({ name, ...props }) {
                                     </Button>
                                   </span>
                                 </div>
+                              </div> */}
+                              {/* <div className="c-dashboardInfo col-md-6 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    Return Quantity
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {tdy_ttl_trans}
+                                  </span>
+                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
+                                
+                                  </span>
+                                </div>
+                              </div> */}
+                              <div className="c-dashboardInfo col-md-6 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    Discounts
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {tdy_disc_total}
+                                  </span>
+                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
+                                    {/* Yesterday: {ytd_ttl_trans} */}
+                                  </span>
+                                </div>
                               </div>
+                              {/* <div className="c-dashboardInfo col-md-4 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    ATV/UPT
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {tdy_ttl_trans}
+                                  </span>
+                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
+                                    Yesterday: {ytd_ttl_trans}
+                                  </span>
+                                </div>
+                              </div> */}
                             </div>
                           </div>
                         </div>
