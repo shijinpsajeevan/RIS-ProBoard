@@ -6,7 +6,8 @@ const initialState = {
     selected_store:null,
     store_details:[],
     selected_sbs:null,
-    str_Intel_hr_zoom:false
+    str_Intel_hr_zoom:false,
+    str_adv_filter:false,
 }
 
 export const storeFilter = createSlice({
@@ -36,13 +37,17 @@ export const storeFilter = createSlice({
         set_str_Intel_hr_zoom:(state,action)=>{
             console.log(action.payload,"ZoomLevel");
             state.str_Intel_hr_zoom = action.payload;
+        },
+        set_str_adv_filter:(state,action)=>{
+            console.log(action.payload,"Aadvanced Filter");
+            state.str_adv_filter = action.payload;
         }
     }
 })
 
 
 //export actions
-export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs,set_str_Intel_hr_zoom,set_empstatData} = storeFilter.actions;
+export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs,set_str_Intel_hr_zoom,set_empstatData,set_str_adv_filter} = storeFilter.actions;
 
 //export reducers
 export const abc =  storeFilter.reducer;

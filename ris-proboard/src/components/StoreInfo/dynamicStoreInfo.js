@@ -1,7 +1,12 @@
 // Imported React components
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import Badge from "react-bootstrap/Badge";
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import setHours from "date-fns/setHours";
+import setMinutes from "date-fns/setMinutes";
+
 import {
   set_str_filter_value,
   set_sbs_filter_value,
@@ -36,16 +41,25 @@ import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
 import Alert from "react-bootstrap/Alert";
 import Table from "react-bootstrap/Table";
+import Badge from "react-bootstrap/Badge";
 
 // Imported fontAwesome Library
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar, faCalendarCheck, faCalendarTimes, faFilter, faMarsAndVenus, faSearch, faShop, faTimeline, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 
 // Imported Custom Stylesheets
-import "./storeInfo.css";
+import "./dynamicStoreInfo.css";
 import { LineChart } from "recharts";
 
-function StoreInfo({ name, ...props }) {
+function DynamicStoreInfo({ name, ...props }) {
+
+  // Date range
+
+  const [startDate, setStartDate] = useState(setHours(setMinutes(new Date(), 0), 0));
+  const [endDate, setEndDate] = useState(setHours(setMinutes(new Date(), 59), 23));
+
+
+
   const str_options = useSelector((state) => state.counter1.str_filter_val);
   const sbs_options = useSelector((state) => state.counter1.sbs_filter_val);
   const selected_store = useSelector((state) => state.counter1.selected_store);
@@ -58,7 +72,7 @@ function StoreInfo({ name, ...props }) {
 
   const dispatch = useDispatch();
 
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
   const [showAlert, setShowAlert] = useState(true);
   const [zoom, setZoom] = useState(true);
   const [tdy_ttl_trans, set_tdy_ttl_trans] = useState(0);
@@ -85,7 +99,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/gettdydisctotal",
+          url: "http://localhost:3001/dyndashboard/gettdydisctotal",
           headers: {
             "content-type": "application/json",
           },
@@ -112,7 +126,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/negativeStock",
+          url: "http://localhost:3001/dyndashboard/negativeStock",
           headers: {
             "content-type": "application/json",
           },
@@ -144,7 +158,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/storeOHqty",
+          url: "http://localhost:3001/dyndashboard/storeOHqty",
           headers: {
             "content-type": "application/json",
           },
@@ -176,7 +190,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/gettdaytransttl",
+          url: "http://localhost:3001/dyndashboard/gettdaytransttl",
           headers: {
             "content-type": "application/json",
           },
@@ -208,7 +222,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/getytdtransttl",
+          url: "http://localhost:3001/dyndashboard/getytdtransttl",
           headers: {
             "content-type": "application/json",
           },
@@ -240,7 +254,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/qtysldtoday",
+          url: "http://localhost:3001/dyndashboard/qtysldtoday",
           headers: {
             "content-type": "application/json",
           },
@@ -273,7 +287,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/qtysldyesterday",
+          url: "http://localhost:3001/dyndashboard/qtysldyesterday",
           headers: {
             "content-type": "application/json",
           },
@@ -306,7 +320,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/gettdyretqty",
+          url: "http://localhost:3001/dyndashboard/gettdyretqty",
           headers: {
             "content-type": "application/json",
           },
@@ -340,7 +354,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/customerRecord",
+          url: "http://localhost:3001/dyndashboard/customerRecord",
           headers: {
             "content-type": "application/json",
           },
@@ -376,7 +390,7 @@ function StoreInfo({ name, ...props }) {
       await axios
         .request({
           method: "POST",
-          url: "http://localhost:3001/dashboard/storeData",
+          url: "http://localhost:3001/dyndashboard/storeData",
           headers: {
             "content-type": "application/json",
           },
@@ -422,7 +436,7 @@ function StoreInfo({ name, ...props }) {
         await axios
           .request({
             method: "POST",
-            url: "http://localhost:3001/dashboard/subsidiary",
+            url: "http://localhost:3001/dyndashboard/subsidiary",
             headers: {
               "content-type": "application/json",
             },
@@ -441,7 +455,7 @@ function StoreInfo({ name, ...props }) {
 
       // try {
       //     var sbs_list_OptionData=[];
-      //     await fetch("http://localhost:3001/dashboard/subsidiary").then((res)=>res.json()).then((data)=>sbs_list_OptionData=data.messages.rows);
+      //     await fetch("http://localhost:3001/dyndashboard/subsidiary").then((res)=>res.json()).then((data)=>sbs_list_OptionData=data.messages.rows);
       //     console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",sbs_list_OptionData);
       //     dispatch(set_sbs_filter_value(sbs_list_OptionData));
       // } catch (error) {
@@ -541,6 +555,16 @@ function StoreInfo({ name, ...props }) {
                     </Form.Select>
                   </FloatingLabel>
                   <br />
+                  <div>
+                  Start Date :
+                  <DatePicker className="datePicker" selected={startDate} onChange={(date) => setStartDate(date)} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal/>
+                  </div>
+                  <br/>
+                  <div>
+                  End Date :
+                  <DatePicker className="datePicker" selected={endDate} maxDate={new Date()} onChange={(date) => setEndDate(date)} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal/>
+                  </div>
+                  <br/>
                   <Button
                     variant="success"
                     onClick={() => fetchStoreData("btn")}
@@ -577,176 +601,7 @@ function StoreInfo({ name, ...props }) {
                 <Card.Text>
                   <Container fluid className="p-0 m-0">
                     <Row>
-                      <Col xs={12} md={5}>
-                        <Table borderless className="p-0 storeTable" responsive>
-                          <tbody>
-                            <tr>
-                              <td>Store Name</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0] ? store_details[0][2] : ""}{" "}
-                                &nbsp;
-                                <sup>
-                                  {store_details[0] ? (
-                                    store_details[0][3] === 1 ? (
-                                      <span style={{ fontSize: "small" }}>
-                                        <Badge pill bg="success">
-                                          Active
-                                        </Badge>
-                                      </span>
-                                    ) : (
-                                      <span style={{ fontSize: "small" }}>
-                                        <Badge pill bg="secondary">
-                                          Deactivated
-                                        </Badge>
-                                      </span>
-                                    )
-                                  ) : (
-                                    ""
-                                  )}
-                                </sup>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Store Code</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0] ? store_details[0][1] : ""}
-                              </td>
-                            </tr>
-
-                            <tr>
-                              <td>Address</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0] ? (
-                                  <span>
-                                    {store_details[0][4]}
-                                    <br />
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                                {store_details[0] ? (
-                                  <span>
-                                    {store_details[0][5]}
-                                    <br />
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                                {store_details[0] ? (
-                                  <span>
-                                    {store_details[0][6]}
-                                    <br />
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                                {store_details[0] ? (
-                                  <span>
-                                    {store_details[0][7]}
-                                    <br />
-                                  </span>
-                                ) : (
-                                  ""
-                                )}
-                                {store_details[0] ? (
-                                  <span>{store_details[0][8]}</span>
-                                ) : (
-                                  ""
-                                )}
-                              </td>
-                            </tr>
-
-                            <tr>
-                              <td>Zip</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0]
-                                  ? store_details[0][9]
-                                    ? store_details[0][9]
-                                    : "N/A"
-                                  : "N/A"}
-                              </td>
-                            </tr>
-
-                            <tr>
-                              <td>Phone</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0] ? (
-                                  <>
-                                    <span>{store_details[0][10]}</span>
-                                    <>
-                                      <span>
-                                        <br />
-                                        {store_details[0][11]}
-                                      </span>
-                                    </>
-                                  </>
-                                ) : (
-                                  "N/A"
-                                )}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Subsidiary Name</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0]
-                                  ? store_details[0][13]
-                                    ? store_details[0][13]
-                                    : "N/A"
-                                  : "N/A"}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>Active price level</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0]
-                                  ? store_details[0][15]
-                                    ? store_details[0][15]
-                                    : "N/A"
-                                  : "N/A"}
-                              </td>
-                            </tr>
-
-                            <tr>
-                              <td>Tax Area 1</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0]
-                                  ? store_details[0][16]
-                                    ? store_details[0][16]
-                                    : "N/A"
-                                  : "N/A"}
-                              </td>
-                            </tr>
-
-                            <tr>
-                              <td>Tax Area 2</td>
-                              <td>&nbsp;&nbsp;:&nbsp;&nbsp;</td>
-                              <td>
-                                {store_details[0]
-                                  ? store_details[0][17]
-                                    ? store_details[0][17]
-                                    : "N/A"
-                                  : "N/A"}
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </Table>
-                      </Col>
-                      <Col xs={12} md={7}>
+                      <Col xs={12} md={12}>
                         <div className="pl-1">
                           <div className="container pt-1">
                             <div className="row align-items-stretch">
@@ -993,7 +848,7 @@ function StoreInfo({ name, ...props }) {
           </Col>
         </Row>
         <Row className="rowStyle">
-          <Col xs={12} md={6}>
+          <Col xs={12} md={12}>
             <Card
               style={{ width: "100%", height: "300px" }}
               className="text-center p-1"
@@ -1004,7 +859,7 @@ function StoreInfo({ name, ...props }) {
               </Card.Body>
             </Card>
           </Col>
-          <Col xs={12} md={6}>
+          {/* <Col xs={12} md={6}>
             <Card
               style={{ width: "100%", height: "300px" }}
               className="text-center p-1"
@@ -1014,7 +869,7 @@ function StoreInfo({ name, ...props }) {
               <YtdBrushChartComp/>
               </Card.Body>
             </Card>
-          </Col>
+          </Col> */}
         </Row>
         <Row className="rowStyle">
           <Col xs={12} md={12}>
@@ -1057,4 +912,4 @@ function StoreInfo({ name, ...props }) {
   );
 }
 
-export default StoreInfo;
+export default DynamicStoreInfo;

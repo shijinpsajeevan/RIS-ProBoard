@@ -10,6 +10,7 @@ app.use(express.json());
 
 
 app.use("/dashboard",require("./routes/dashboard"))
+app.use("/dyndashboard",require("./routes/dyndashboard"))
 
 const PORT = process.env.PORT||3001;
 

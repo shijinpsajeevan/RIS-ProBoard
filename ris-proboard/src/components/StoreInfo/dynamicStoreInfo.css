@@ -122,7 +122,6 @@
   
 /* Dashboard Css End */
 
-
 .advSearch{
   color: rgb(235, 240, 236);
   background-color: #7a868e !important;
@@ -134,4 +133,15 @@
 
 .advSearch:hover{
   color: rgb(0, 0, 0) !important;
+}
+
+.datePicker {
+  width: 100% !important;
+  padding: 5px;
+  border-radius: 2px;
+  border: 1px solid grey;
+}
+
+.react-datepicker-popper{
+  width: 100% !important;
 }
