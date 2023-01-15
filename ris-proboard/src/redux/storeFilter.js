@@ -8,6 +8,8 @@ const initialState = {
     selected_sbs:null,
     str_Intel_hr_zoom:false,
     str_adv_filter:false,
+    str_sDate:null,
+    str_eDate:null
 }
 
 export const storeFilter = createSlice({
@@ -39,15 +41,23 @@ export const storeFilter = createSlice({
             state.str_Intel_hr_zoom = action.payload;
         },
         set_str_adv_filter:(state,action)=>{
-            console.log(action.payload,"Aadvanced Filter");
+            console.log(action.payload,"Start Adv filter");
             state.str_adv_filter = action.payload;
+        },
+        set_str_sDate:(state,action)=>{
+            console.log(action.payload,"Start Date Filter");
+            state.str_sDate = action.payload;
+        },
+        set_str_eDate:(state,action)=>{
+            console.log(action.payload,"End Date Filter");
+            state.str_eDate = action.payload;
         }
     }
 })
 
 
 //export actions
-export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs,set_str_Intel_hr_zoom,set_empstatData,set_str_adv_filter} = storeFilter.actions;
+export const {set_str_filter_value,set_sbs_filter_value,set_selected_store,set_store_details,set_selected_sbs,set_str_Intel_hr_zoom,set_empstatData,set_str_adv_filter,set_str_sDate,set_str_eDate} = storeFilter.actions;
 
 //export reducers
 export const abc =  storeFilter.reducer;

@@ -14,18 +14,20 @@ import {
   set_store_details,
   set_selected_sbs,
   set_str_Intel_hr_zoom,
-  set_str_adv_filter
+  set_str_adv_filter,
+  set_str_sDate,
+  set_str_eDate
 } from "../../redux/storeFilter";
 
-import LineChartComp from "../Charts/LineChartComp";
-import BarChartComp from "../Charts/BarChartComp";
-import StackedBarComp from "../Charts/StackedBarComp";
-import PieChartComp from "../Charts/PieChartComp";
-import OuterPieChartComp from "../Charts/OuterPieChartComp";
-import BrushChartComp from "../Charts/BrushChartComp";
-import YtdBrushChartComp from "../Charts/YtdBrushChartComp";
-import EmpDailyStatTable from "../Tables/EmpDailyStatTable";
-import TenderDailyStatTable from "../Tables/TenderDailyStatTable";
+import DynamicLineChartComp from "../DynamicCharts/DynamicLineChartComp";
+import DynamicBarChartComp from "../DynamicCharts/DynamicBarChartComp";
+import DynamicStackedBarComp from "../DynamicCharts/DynamicStackedBarComp";
+import DynamicPieChartComp from "../DynamicCharts/DynamicPieChartComp";
+import DynamicOuterPieChartComp from "../DynamicCharts/DynamicOuterPieChartComp";
+import DynamicBrushChartComp from "../DynamicCharts/DynamicBrushChartComp";
+import DynamicYtdBrushChartComp from "../DynamicCharts/DynamicYtdBrushChartComp";
+import DynamicEmpDailyStatTable from "../DynamicTables/DynamicEmpDailyStatTable";
+import DynamicTenderDailyStatTable from "../DynamicTables/DynamicTenderDailyStatTable";
 
 // Import Axios Library
 import axios from "axios";
@@ -39,6 +41,7 @@ import Col from "react-bootstrap/Col";
 import FloatingLabel from "react-bootstrap/FloatingLabel";
 import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
+import Toast from 'react-bootstrap/Toast';
 import Alert from "react-bootstrap/Alert";
 import Table from "react-bootstrap/Table";
 import Badge from "react-bootstrap/Badge";
@@ -67,6 +70,8 @@ function DynamicStoreInfo({ name, ...props }) {
   const store_details = useSelector((state) => state.counter1.store_details);
   const zoomLevel = useSelector((state) => state.counter1.str_Intel_hr_zoom);
   const str_adv_filter = useSelector((state) => state.counter1.str_adv_filter);
+  const str_sDate = useSelector((state) => state.counter1.str_sDate);
+  const str_eDate = useSelector((state) => state.counter1.str_eDate);
 
   console.log(str_options, "StoreOptions");
 
@@ -77,13 +82,9 @@ function DynamicStoreInfo({ name, ...props }) {
   const [zoom, setZoom] = useState(true);
   const [tdy_ttl_trans, set_tdy_ttl_trans] = useState(0);
   const [tdy_disc_total,set_tdy_disc_total] = useState(0);
-  const [ytd_ttl_trans, set_ytd_ttl_trans] = useState(0);
   const [tdy_sold_qty, set_tdy_sold_qty] = useState(0);
-  const [ytd_sold_qty, set_ytd_sold_qty] = useState(0);
-  const [ohQty, setohQty] = useState(0);
-  const [negQty, setnegQqty] = useState(0);
   const [rtnQty,setrtnQty] = useState(0);
-  const [custRecord,setCustRecord] = useState(0);
+  
 
 
   const handleClose = () => setShow(false);
@@ -92,6 +93,63 @@ function DynamicStoreInfo({ name, ...props }) {
   const saveStoreSid = (str_sid) => {
     dispatch(set_selected_store(str_sid));
   };
+
+
+  //Date converted for Oracle 
+
+  const dateConverter = async(date,i)=>{
+    try {
+
+      // converting to 16.11.2022:16:04 format
+
+      function convertTime12To24(date) {
+        var day = String(date.getDate()).padStart(2,'0');
+        var month = String(date.getMonth()+1).padStart(2,'0');
+        var year = date.getFullYear();
+        var hours   = String(date.getHours()).padStart(2,'0');
+        var minutes  = String(date.getMinutes()).padStart(2,'0');
+        return (day+"."+month+"."+year+":"+hours+ ":"+ minutes);
+    }
+
+      if(i==="sDate")
+      {
+        setStartDate(date);
+        var timeProcess = convertTime12To24(date)
+        dispatch(set_str_sDate(timeProcess))
+      }
+
+      else if(i==="eDate"){
+        if(date<startDate)
+        {
+          return(
+            <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide>
+            <Toast.Header>
+            <img
+              src="holder.js/20x20?text=%20"
+              className="rounded me-2"
+              alt=""
+            />
+            <strong className="me-auto">Bootstrap</strong>
+            <small>11 mins ago</small>
+          </Toast.Header>
+          <Toast.Body>End date preceeding Start Date</Toast.Body>
+          </Toast>
+          )
+        }
+        setEndDate(date)
+        var timeProcess = convertTime12To24(date)
+        dispatch(set_str_eDate(timeProcess))
+      }
+      else{
+        alert("Error in Date conversion, SdATE OR EdATE paramter error")
+      }
+
+    } catch (error) {
+      alert("Error converting Time");
+      console.log(error);
+      return;
+    }
+  }
 
 
   const gettdydisctotal = async (a) => {
@@ -106,11 +164,13 @@ function DynamicStoreInfo({ name, ...props }) {
           data: [
             {
               store_sid: a,
+              date1Par:str_sDate,
+              date2Par:str_eDate
             },
           ],
         })
         .then(function (res) {
-          {res.data?set_tdy_disc_total("AED "+res.data):set_tdy_disc_total(0);}  
+          {res.data?set_tdy_disc_total("AED "+ res.data):set_tdy_disc_total("AED "+0);}  
           // {res.data.messages[0]? res.data.messages[0][0]? set_tdy_disc_total(res.data.messages[0][0]): set_tdy_disc_total(0): set_tdy_disc_total(0);}
         })
         .catch(function (error) {
@@ -121,69 +181,7 @@ function DynamicStoreInfo({ name, ...props }) {
     }
   };
 
-  const getnegativeStock = async (a) => {
-    try {
-      await axios
-        .request({
-          method: "POST",
-          url: "http://localhost:3001/dyndashboard/negativeStock",
-          headers: {
-            "content-type": "application/json",
-          },
-          data: [
-            {
-              store_sid: a,
-            },
-          ],
-        })
-        .then(function (res) {
-          {
-            res.data.messages[0]
-              ? res.data.messages[0][0]
-                ? setnegQqty(res.data.messages[0][0])
-                : setnegQqty(0)
-              : setnegQqty(0);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.log("axios error");
-    }
-  };
 
-  const getstoreOHqty = async (a) => {
-    try {
-      await axios
-        .request({
-          method: "POST",
-          url: "http://localhost:3001/dyndashboard/storeOHqty",
-          headers: {
-            "content-type": "application/json",
-          },
-          data: [
-            {
-              store_sid: a,
-            },
-          ],
-        })
-        .then(function (res) {
-          {
-            res.data.messages[0]
-              ? res.data.messages[0][0]
-                ? setohQty(res.data.messages[0][0])
-                : setohQty(0)
-              : setohQty(0);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.log("axios error");
-    }
-  };
 
   const gettdaytransttl = async (a) => {
     try {
@@ -197,6 +195,8 @@ function DynamicStoreInfo({ name, ...props }) {
           data: [
             {
               store_sid: a,
+              date1Par:str_sDate,
+              date2Par:str_eDate
             },
           ],
         })
@@ -217,37 +217,6 @@ function DynamicStoreInfo({ name, ...props }) {
     }
   };
 
-  const getytdtransttl = async (a) => {
-    try {
-      await axios
-        .request({
-          method: "POST",
-          url: "http://localhost:3001/dyndashboard/getytdtransttl",
-          headers: {
-            "content-type": "application/json",
-          },
-          data: [
-            {
-              store_sid: a,
-            },
-          ],
-        })
-        .then(function (res) {
-          {
-            res.data.messages[0]
-              ? res.data.messages[0][0]
-                ? set_ytd_ttl_trans("AED " + res.data.messages[0][0])
-                : set_ytd_ttl_trans("AED " + 0)
-              : set_ytd_ttl_trans("AED " + 0);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.log("axios error");
-    }
-  };
 
   const gettdayqtyttl = async (a) => {
     try {
@@ -260,7 +229,9 @@ function DynamicStoreInfo({ name, ...props }) {
           },
           data: [
             {
-              store_sid: a
+              store_sid: a,
+              date1Par:str_sDate,
+              date2Par:str_eDate
             },
           ],
         })
@@ -271,39 +242,6 @@ function DynamicStoreInfo({ name, ...props }) {
                 ? set_tdy_sold_qty(res.data.messages[0][0])
                 : set_tdy_sold_qty(0)
               : set_tdy_sold_qty(0);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.log("axios error");
-    }
-  };
-
-
-  const getytdqtyttl = async (a) => {
-    try {
-      await axios
-        .request({
-          method: "POST",
-          url: "http://localhost:3001/dyndashboard/qtysldyesterday",
-          headers: {
-            "content-type": "application/json",
-          },
-          data: [
-            {
-              store_sid: a
-            },
-          ],
-        })
-        .then(function (res) {
-          {
-            res.data.messages[0]
-              ? res.data.messages[0][0]
-                ? set_ytd_sold_qty(res.data.messages[0][0])
-                : set_ytd_sold_qty(0)
-              : set_ytd_sold_qty(0);
           }
         })
         .catch(function (error) {
@@ -326,7 +264,9 @@ function DynamicStoreInfo({ name, ...props }) {
           },
           data: [
             {
-              store_sid: a
+              store_sid: a,
+              date1Par:str_sDate,
+              date2Par:str_eDate
             },
           ],
         })
@@ -347,44 +287,12 @@ function DynamicStoreInfo({ name, ...props }) {
     }
   };
 
-  
-
-  const getcustomerRecord = async (a) => {
-    try {
-      await axios
-        .request({
-          method: "POST",
-          url: "http://localhost:3001/dyndashboard/customerRecord",
-          headers: {
-            "content-type": "application/json",
-          },
-          data: [
-            {
-              store_sid: a
-            },
-          ],
-        })
-        .then(function (res) {
-          {
-            res.data.messages[0]
-              ? res.data.messages[0][0]
-                ? setCustRecord(res.data.messages[0][0])
-                : setCustRecord(0)
-              : setCustRecord(0);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.log("axios error");
-    }
-  };
-
 
   const fetchStoreData = async (btn) => {
     if (btn === "btn") {
       setShow(false);
+      dateConverter(startDate,"sDate");
+      dateConverter(endDate,"eDate");
     }
     try {
       await axios
@@ -409,14 +317,9 @@ function DynamicStoreInfo({ name, ...props }) {
 
           //passing store sid to the function
           gettdaytransttl(res.data.messages[0][0]);
-          getytdtransttl(res.data.messages[0][0]);
           gettdayqtyttl(res.data.messages[0][0]);
-          getytdqtyttl(res.data.messages[0][0]);
-          getstoreOHqty(res.data.messages[0][0]);
-          getnegativeStock(res.data.messages[0][0]);
           gettdydisctotal(res.data.messages[0][0]);
           gettdyretqty(res.data.messages[0][0]);
-          getcustomerRecord(res.data.messages[0][0])
         })
         .catch(function (error) {
           console.error(error);
@@ -429,6 +332,8 @@ function DynamicStoreInfo({ name, ...props }) {
   useEffect(() => {
     if (selected_store) {
       fetchStoreData();
+      dateConverter(startDate,"sDate");
+      dateConverter(endDate,"eDate");
     }
 
     async function getSubsidiaryList() {
@@ -557,12 +462,12 @@ function DynamicStoreInfo({ name, ...props }) {
                   <br />
                   <div>
                   Start Date :
-                  <DatePicker className="datePicker" selected={startDate} onChange={(date) => setStartDate(date)} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal/>
+                  <DatePicker className="datePicker" selected={startDate} maxDate={new Date()} onChange={(date) => dateConverter(date,"sDate")} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal todayButton="Today"/>
                   </div>
                   <br/>
                   <div>
                   End Date :
-                  <DatePicker className="datePicker" selected={endDate} maxDate={new Date()} onChange={(date) => setEndDate(date)} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal/>
+                  <DatePicker className="datePicker" selected={endDate} maxDate={new Date()} onChange={(date) => dateConverter(date,"eDate")} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal/>
                   </div>
                   <br/>
                   <Button
@@ -605,7 +510,7 @@ function DynamicStoreInfo({ name, ...props }) {
                         <div className="pl-1">
                           <div className="container pt-1">
                             <div className="row align-items-stretch">
-                            <div className="c-dashboardInfo col-md-4 col-sm-12">
+                            <div className="c-dashboardInfo col-md-3 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Transaction Total
@@ -626,12 +531,9 @@ function DynamicStoreInfo({ name, ...props }) {
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
                                     {tdy_ttl_trans}
                                   </span>
-                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    Yesterday: {ytd_ttl_trans}
-                                  </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                              <div className="c-dashboardInfo col-md-3 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Quantity Sold
@@ -652,12 +554,9 @@ function DynamicStoreInfo({ name, ...props }) {
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
                                     {tdy_sold_qty}
                                   </span>
-                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    Yesterday: {ytd_sold_qty}
-                                  </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                              <div className="c-dashboardInfo col-md-3 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Return Quantity
@@ -682,7 +581,7 @@ function DynamicStoreInfo({ name, ...props }) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                              <div className="c-dashboardInfo col-md-3 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Discounts
@@ -702,61 +601,6 @@ function DynamicStoreInfo({ name, ...props }) {
                                   </h4>
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
                                     {tdy_disc_total}
-                                  </span>
-                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    {/* Yesterday: {ytd_ttl_trans} */}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="c-dashboardInfo col-md-4 col-sm-12">
-                                <div className="wrap">
-                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
-                                    New Customer Record
-                                    <svg
-                                      className="MuiSvgIcon-root-19"
-                                      focusable="false"
-                                      viewBox="0 0 24 24"
-                                      aria-hidden="true"
-                                      role="presentation"
-                                    >
-                                      <path
-                                        fill="none"
-                                        d="M0 0h24v24H0z"
-                                      ></path>
-                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
-                                    </svg>
-                                  </h4>
-                                  <span className="hind-font caption-12 c-dashboardInfo__count">
-                                    {custRecord}
-                                  </span>
-                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="c-dashboardInfo col-md-4 col-sm-12">
-                                <div className="wrap">
-                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
-                                    Available Stock
-                                    <svg
-                                      className="MuiSvgIcon-root-19"
-                                      focusable="false"
-                                      viewBox="0 0 24 24"
-                                      aria-hidden="true"
-                                      role="presentation"
-                                    >
-                                      <path
-                                        fill="none"
-                                        d="M0 0h24v24H0z"
-                                      ></path>
-                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
-                                    </svg>
-                                  </h4>
-                                  <span className="hind-font caption-12 c-dashboardInfo__count">
-                                    {ohQty}
-                                  </span>
-                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    Transit: 0
                                   </span>
                                 </div>
                               </div>
@@ -831,7 +675,7 @@ function DynamicStoreInfo({ name, ...props }) {
                 </Form>
               </Card.Title>
               <Card.Body>
-                <LineChartComp />
+                <DynamicLineChartComp />
               </Card.Body>
             </Card>
           </Col>
@@ -842,7 +686,7 @@ function DynamicStoreInfo({ name, ...props }) {
             >
               <Card.Title>Staff Performance</Card.Title>
               <Card.Body>
-                <StackedBarComp />
+                <DynamicStackedBarComp />
               </Card.Body>
             </Card>
           </Col>
@@ -855,7 +699,7 @@ function DynamicStoreInfo({ name, ...props }) {
             >
               <Card.Title>Transaction Overview</Card.Title>
               <Card.Body>
-                <BrushChartComp />
+                <DynamicBrushChartComp />
               </Card.Body>
             </Card>
           </Col>
@@ -876,7 +720,7 @@ function DynamicStoreInfo({ name, ...props }) {
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)'}}>
               <Card.Title style={{background:'none',color:'white'}}>Employee Statistics</Card.Title>
               <Card.Body >
-                    <EmpDailyStatTable/>
+                    <DynamicEmpDailyStatTable/>
               </Card.Body>
             </Card>
           </Col>
@@ -886,7 +730,7 @@ function DynamicStoreInfo({ name, ...props }) {
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',width: "100%", height: "400px"}}>
               <Card.Title style={{background:'none',color:'white'}}>Discount Reason</Card.Title>
               <Card.Body >
-                    <PieChartComp/>
+                    <DynamicPieChartComp/>
               </Card.Body>
             </Card>
           </Col>
@@ -894,7 +738,7 @@ function DynamicStoreInfo({ name, ...props }) {
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',width: "100%", height: "400px"}}>
               <Card.Title style={{background:'none',color:'white'}}>Tender Info</Card.Title>
               <Card.Body >
-                    <OuterPieChartComp/>
+                    <DynamicOuterPieChartComp/>
               </Card.Body>
             </Card>
           </Col>
@@ -902,7 +746,7 @@ function DynamicStoreInfo({ name, ...props }) {
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',marginTop:'10px'}}>
               <Card.Title style={{background:'none',color:'white'}}>Tender Info</Card.Title>
               <Card.Body >
-                    <TenderDailyStatTable/>
+                    <DynamicTenderDailyStatTable/>
               </Card.Body>
             </Card>
           </Col>
