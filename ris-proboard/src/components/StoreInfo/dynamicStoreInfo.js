@@ -41,10 +41,14 @@ import Col from "react-bootstrap/Col";
 import FloatingLabel from "react-bootstrap/FloatingLabel";
 import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
-import Toast from 'react-bootstrap/Toast';
 import Alert from "react-bootstrap/Alert";
 import Table from "react-bootstrap/Table";
 import Badge from "react-bootstrap/Badge";
+
+// Imported from Toastify
+
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Imported fontAwesome Library
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -84,6 +88,9 @@ function DynamicStoreInfo({ name, ...props }) {
   const [tdy_disc_total,set_tdy_disc_total] = useState(0);
   const [tdy_sold_qty, set_tdy_sold_qty] = useState(0);
   const [rtnQty,setrtnQty] = useState(0);
+  const [rcptCount,set_rcptCount] = useState(0);
+  const [taxTotal,set_taxTotal] = useState(0);
+  const [deposit,setDeposit] = useState(0);
   
 
 
@@ -121,20 +128,7 @@ function DynamicStoreInfo({ name, ...props }) {
       else if(i==="eDate"){
         if(date<startDate)
         {
-          return(
-            <Toast onClose={() => setShow(false)} show={show} delay={3000} autohide>
-            <Toast.Header>
-            <img
-              src="holder.js/20x20?text=%20"
-              className="rounded me-2"
-              alt=""
-            />
-            <strong className="me-auto">Bootstrap</strong>
-            <small>11 mins ago</small>
-          </Toast.Header>
-          <Toast.Body>End date preceeding Start Date</Toast.Body>
-          </Toast>
-          )
+          toast.warn("Invalid Date Range");
         }
         setEndDate(date)
         var timeProcess = convertTime12To24(date)
@@ -151,6 +145,69 @@ function DynamicStoreInfo({ name, ...props }) {
     }
   }
 
+
+  const gettaxTotal = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dyndashboard/dyngettaxtotal",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+              date1Par:str_sDate,
+              date2Par:str_eDate
+
+            },
+          ],
+        })
+        .then(function (res) {
+          {
+            res.data.messages[0]
+              ? res.data.messages[0][0]
+                ? set_taxTotal("AED " + res.data.messages[0][0])
+                : set_taxTotal("AED " + 0)
+              : set_taxTotal("AED " + 0);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
+  const getRcptCount = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dyndashboard/dyngetRcptCount",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+              date1Par:str_sDate,
+              date2Par:str_eDate
+            },
+          ],
+        })
+        .then(function (res) {
+          {res.data?set_rcptCount(res.data):set_rcptCount(0);}  
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
 
   const gettdydisctotal = async (a) => {
     try {
@@ -320,6 +377,8 @@ function DynamicStoreInfo({ name, ...props }) {
           gettdayqtyttl(res.data.messages[0][0]);
           gettdydisctotal(res.data.messages[0][0]);
           gettdyretqty(res.data.messages[0][0]);
+          getRcptCount(res.data.messages[0][0]);
+          gettaxTotal(res.data.messages[0][0]);
         })
         .catch(function (error) {
           console.error(error);
@@ -390,7 +449,7 @@ function DynamicStoreInfo({ name, ...props }) {
     getSubsidiaryList();
     getStoreList();
     selected_store ? fetchStoreData() : setShow(false);
-  }, [selected_store]);
+  }, [selected_store,startDate,endDate]);
 
   return (
     <>
@@ -462,12 +521,12 @@ function DynamicStoreInfo({ name, ...props }) {
                   <br />
                   <div>
                   Start Date :
-                  <DatePicker className="datePicker" selected={startDate} maxDate={new Date()} onChange={(date) => dateConverter(date,"sDate")} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal todayButton="Today"/>
+                  <DatePicker className="datePicker" selected={startDate} maxDate={new Date()} onChange={(date) => dateConverter(date,"sDate")} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  todayButton="Today" highlightDates={[startDate, endDate]}/>
                   </div>
                   <br/>
                   <div>
                   End Date :
-                  <DatePicker className="datePicker" selected={endDate} maxDate={new Date()} onChange={(date) => dateConverter(date,"eDate")} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  withPortal/>
+                  <DatePicker className="datePicker" selected={endDate} maxDate={new Date()} onChange={(date) => dateConverter(date,"eDate")} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa"  todayButton="Today" highlightDates={[startDate, endDate]}/>
                   </div>
                   <br/>
                   <Button
@@ -477,6 +536,7 @@ function DynamicStoreInfo({ name, ...props }) {
                     Save
                   </Button>
                 </Offcanvas.Body>
+                <ToastContainer position="bottom-right"/>
               </Offcanvas>
             </div>
           </Col>
@@ -510,7 +570,7 @@ function DynamicStoreInfo({ name, ...props }) {
                         <div className="pl-1">
                           <div className="container pt-1">
                             <div className="row align-items-stretch">
-                            <div className="c-dashboardInfo col-md-3 col-sm-12">
+                            <div className="c-dashboardInfo col-md-4 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Transaction Total
@@ -533,7 +593,7 @@ function DynamicStoreInfo({ name, ...props }) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-3 col-sm-12">
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Quantity Sold
@@ -556,7 +616,7 @@ function DynamicStoreInfo({ name, ...props }) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-3 col-sm-12">
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Return Quantity
@@ -581,7 +641,7 @@ function DynamicStoreInfo({ name, ...props }) {
                                   </span>
                                 </div>
                               </div>
-                              <div className="c-dashboardInfo col-md-3 col-sm-12">
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Discounts
@@ -601,6 +661,52 @@ function DynamicStoreInfo({ name, ...props }) {
                                   </h4>
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
                                     {tdy_disc_total}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    Receipt Count
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {rcptCount}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    Total Tax
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {taxTotal}
                                   </span>
                                 </div>
                               </div>
@@ -718,7 +824,7 @@ function DynamicStoreInfo({ name, ...props }) {
         <Row className="rowStyle">
           <Col xs={12} md={12}>
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)'}}>
-              <Card.Title style={{background:'none',color:'white'}}>Employee Statistics</Card.Title>
+              <Card.Title style={{background:'none',color:'white'}}>Store KPI</Card.Title>
               <Card.Body >
                     <DynamicEmpDailyStatTable/>
               </Card.Body>
@@ -736,7 +842,7 @@ function DynamicStoreInfo({ name, ...props }) {
           </Col>
           <Col xs={12} md={6}>
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',width: "100%", height: "400px"}}>
-              <Card.Title style={{background:'none',color:'white'}}>Tender Info</Card.Title>
+              <Card.Title style={{background:'none',color:'white'}}>Tenders</Card.Title>
               <Card.Body >
                     <DynamicOuterPieChartComp/>
               </Card.Body>

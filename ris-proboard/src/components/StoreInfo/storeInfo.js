@@ -70,6 +70,11 @@ function StoreInfo({ name, ...props }) {
   const [negQty, setnegQqty] = useState(0);
   const [rtnQty,setrtnQty] = useState(0);
   const [custRecord,setCustRecord] = useState(0);
+  const [rcptCount,set_rcptCount] = useState(0);
+  const [ytdrcptCount,set_ytdrcptCount] = useState(0);
+  const [taxTotal,set_taxTotal] = useState(0);
+  const [deposit,setDeposit] = useState(0);
+  const [transitQty,settransitQqty] = useState(0);
 
 
   const handleClose = () => setShow(false);
@@ -77,6 +82,156 @@ function StoreInfo({ name, ...props }) {
 
   const saveStoreSid = (str_sid) => {
     dispatch(set_selected_store(str_sid));
+  };
+
+
+  const getDepositAmt = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dashboard/getDepositAmt",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {
+            res.data.messages[0]
+              ? res.data.messages[0][0]
+                ? setDeposit("AED " +res.data.messages[0][0])
+                : setDeposit("AED " +0)
+              : setDeposit("AED " +0);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
+  const gettransitqty = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dashboard/gettransitqty",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {
+            res.data.messages[0]
+              ? res.data.messages[0][0]
+                ? settransitQqty(res.data.messages[0][0])
+                : settransitQqty(0)
+              : settransitQqty(0);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
+  const gettaxTotal = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dashboard/gettaxtotal",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {
+            res.data.messages[0]
+              ? res.data.messages[0][0]
+                ? set_taxTotal("AED " + res.data.messages[0][0])
+                : set_taxTotal("AED " + 0)
+              : set_taxTotal("AED " + 0);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
+  const getytdRcptCount = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dashboard/getytdRcptCount",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {res.data?set_ytdrcptCount(res.data):set_ytdrcptCount(0);}  
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
+
+
+  const getRcptCount = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dashboard/getRcptCount",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {res.data?set_rcptCount(res.data):set_rcptCount(0);}  
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
   };
 
 
@@ -402,7 +557,12 @@ function StoreInfo({ name, ...props }) {
           getnegativeStock(res.data.messages[0][0]);
           gettdydisctotal(res.data.messages[0][0]);
           gettdyretqty(res.data.messages[0][0]);
-          getcustomerRecord(res.data.messages[0][0])
+          getcustomerRecord(res.data.messages[0][0]);
+          getRcptCount(res.data.messages[0][0]);
+          getytdRcptCount(res.data.messages[0][0]);
+          gettaxTotal(res.data.messages[0][0]);
+          gettransitqty(res.data.messages[0][0]);
+          getDepositAmt(res.data.messages[0][0]);
         })
         .catch(function (error) {
           console.error(error);
@@ -882,6 +1042,84 @@ function StoreInfo({ name, ...props }) {
                               <div className="c-dashboardInfo col-md-4 col-sm-12">
                                 <div className="wrap">
                                   <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    Receipt Count
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {rcptCount}
+                                  </span>
+                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
+                                    Yesterday: {ytdrcptCount}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    Tax Total
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {taxTotal}
+                                  </span>
+                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
+                                    Yesterday: {ytdrcptCount}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
+                                    SO Deposit
+                                    <svg
+                                      className="MuiSvgIcon-root-19"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      role="presentation"
+                                    >
+                                      <path
+                                        fill="none"
+                                        d="M0 0h24v24H0z"
+                                      ></path>
+                                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>
+                                    </svg>
+                                  </h4>
+                                  <span className="hind-font caption-12 c-dashboardInfo__count">
+                                    {deposit}
+                                  </span>
+                                  <span className="hind-font caption-12 c-dashboardInfo__subInfo">
+                                    
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="c-dashboardInfo col-md-4 col-sm-12">
+                                <div className="wrap">
+                                  <h4 className="heading heading5 hind-font medium-font-weight c-dashboardInfo__title">
                                     Available Stock
                                     <svg
                                       className="MuiSvgIcon-root-19"
@@ -901,7 +1139,7 @@ function StoreInfo({ name, ...props }) {
                                     {ohQty}
                                   </span>
                                   <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    Transit: 0
+                                    Transit: {transitQty}
                                   </span>
                                 </div>
                               </div>
@@ -1019,7 +1257,7 @@ function StoreInfo({ name, ...props }) {
         <Row className="rowStyle">
           <Col xs={12} md={12}>
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)'}}>
-              <Card.Title style={{background:'none',color:'white'}}>Employee Statistics</Card.Title>
+              <Card.Title style={{background:'none',color:'white'}}>Store KPI</Card.Title>
               <Card.Body >
                     <EmpDailyStatTable/>
               </Card.Body>
@@ -1037,7 +1275,7 @@ function StoreInfo({ name, ...props }) {
           </Col>
           <Col xs={12} md={6}>
             <Card className="text-center p-1" style={{background:'none',backgroundColor:'rgba(255, 255, 255, 0.2)',width: "100%", height: "400px"}}>
-              <Card.Title style={{background:'none',color:'white'}}>Tender Info</Card.Title>
+              <Card.Title style={{background:'none',color:'white'}}>Tenders</Card.Title>
               <Card.Body >
                     <OuterPieChartComp/>
               </Card.Body>

@@ -123,7 +123,7 @@ let connection;
 
             // select round(sum(transaction_total_amt),2) as TOTAL from rps.document where trunc(created_datetime) = trunc(sysdate) AND store_sid=:id
 
-            await connection.execute(`SELECT ROUND(SUM(transaction_total_amt),2) AS TOTAL FROM rps.document WHERE created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') AND store_sid=:id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
+            await connection.execute(`SELECT ROUND(SUM(transaction_total_amt),2) AS TOTAL FROM rps.document WHERE receipt_type IN (0,1) AND status=4 AND created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') AND store_sid=:id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
                 fetchInfo : { 
                     "TOTAL" : { type : oracledb.STRING } ,
                 }
@@ -199,7 +199,7 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request");
-            await connection.execute(`SELECT sum(decode(a.item_type,2,a.qty*-1,a.qty)) FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE a.created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') AND c.sid=:id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
+            await connection.execute(`SELECT sum(decode(a.item_type,2,a.qty*-1,a.qty)) FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE b.receipt_type IN (0,1) AND b.status=4 AND a.created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') AND c.sid=:id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
                 fetchInfo : { 
                   
                 }
@@ -308,7 +308,7 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request");
-            await connection.execute(`SELECT ROUND(SUM(((CASE WHEN a.item_type=2 THEN a.qty END))),2) AS "RETURN QTY" FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE b.created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') AND c.sid=:id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
+            await connection.execute(`SELECT ROUND(SUM(((CASE WHEN a.item_type=2 THEN a.qty END))),2) AS "RETURN QTY" FROM rps.document_item a INNER JOIN rps.document b ON a.doc_sid=b.sid INNER JOIN rps.store c ON b.store_sid=c.sid WHERE b.receipt_type IN (0,1) AND b.status=4 AND b.created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') AND c.sid=:id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
                 fetchInfo : {
                 }
               },function(err,result){
@@ -565,11 +565,12 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request received with request body:",req.body[0].store_sid);
-            await connection.execute(`SELECT b.employee1_sid as EMP_SID,b.employee1_full_name AS EMPLOYEE,COUNT(DISTINCT(a.sid))AS DOC_COUNT,SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))AS Doc_Qty,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)AS Sale_Total,ROUND((ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)/COUNT(DISTINCT(a.sid))),2) AS AVG_BKT,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))/COUNT(DISTINCT(a.sid)),2) AS UPT,ROUND(SUM(ROUND((((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.ORIG_PRICE))-((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE))),2)),2) AS "DISC AMT" FROM rps.document a join rps.document_item b on b.doc_sid = a.sid LEFT join rps.document_disc c on c.doc_sid = a.sid WHERE a.created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') and a.receipt_type in (0,1)and b.item_type in (1,2) and a.status =4AND a.store_sid=:id3 GROUP BY b.employee1_full_name,b.employee1_sid`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
+            await connection.execute(`SELECT b.employee1_sid as EMP_SID,b.employee1_full_name AS EMPLOYEE,COUNT(DISTINCT(a.sid))AS DOC_COUNT,SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))AS Doc_Qty,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)AS Sale_Total,ROUND((ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)/COUNT(DISTINCT(a.sid))),2) AS AVG_BKT,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))/COUNT(DISTINCT(a.sid)),2) AS UPT,ROUND(SUM(ROUND((((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.ORIG_PRICE))-((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE))),2)),2) AS "DISC AMT", ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.TAX_AMT)),2) AS Tax_Total FROM rps.document a join rps.document_item b on b.doc_sid = a.sid LEFT join rps.document_disc c on c.doc_sid = a.sid WHERE a.created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') and a.receipt_type in (0,1)and b.item_type in (1,2) and a.status =4AND a.store_sid=:id3 GROUP BY b.employee1_full_name,b.employee1_sid`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
                 fetchInfo : { 
                     "EMP_SID" : {type:oracledb.STRING},
                     "SALE_TOTAL" : {type:oracledb.STRING},
                     "AVG_BKT" : {type:oracledb.STRING},
+					"UPT" : {type:oracledb.STRING},
                     "DISC AMT": {type:oracledb.STRING}
                 }
               },function(err,result){
@@ -706,5 +707,80 @@ let connection;
     })
     // END
 // Store Discount --START
+
+
+// Receipt Count --START
+    // START
+    router.post("/dyngetRcptCount",async(req,res)=>{
+        console.log(req.body[0].store_sid,"/getRcptCount")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request received with request body:",req.body[0].store_sid,"TODAY'S Recipt Count");
+            await connection.execute(`SELECT count(sid) FROM rps.document a WHERE a.receipt_type IN (0,1) AND a.status IN (4) AND created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') AND a.store_sid = :id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
+                fetchInfo : { 
+                }
+              },function(err,result){
+                console.log("Start",result,"Result from server /gettdyrcptcount")
+                result?res.json(result.rows):res.json({messages:[]})
+            });
+    
+        } catch(err){
+            console.log(err);
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+//  Receipt Count --END
+
+
+// Store Tax total --Start
+    // START
+    router.post("/dyngettaxtotal",async(req,res)=>{
+        console.log(req.body[0].Text,"dyngettaxtotal")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request");
+            await connection.execute(`SELECT sum(a.transaction_total_tax_amt) as TAX_TOTAL FROM rps.document a WHERE a.DOC_NO IS NOT NULL AND a.receipt_type in(0,1) and a.status=4 and a.created_datetime BETWEEN to_date(:id1,'DD.MM.YYYY:HH24:MI') AND to_date(:id2,'DD.MM.YYYY:HH24:MI') and a.store_sid=:id3`,[req.body[0].date1Par,req.body[0].date2Par,req.body[0].store_sid],{
+                fetchInfo : { 
+                    "TAX_TOTAL" : { type : oracledb.STRING  } ,
+                }
+              },function(err,result){
+                console.log("Start",result,"Result from server /dyngettaxtotal")
+                result.rows?res.json({messages:result.rows}):res.json({messages:[]})
+                // res.json({messages:result.rows});
+            });
+    
+        } catch(err){
+    
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+// Store Tax total --END
+
 
 module.exports = router;

@@ -105,6 +105,16 @@
   .c-dashboardInfo:nth-child(6) .wrap:after {
     background: linear-gradient(81.67deg, #13547a 0%, #2e7a71 100%);
   }
+  .c-dashboardInfo:nth-child(7) .wrap:after {
+    background: linear-gradient(81.67deg, #13547a 0%, #2e7a71 100%);
+  }
+  .c-dashboardInfo:nth-child(8) .wrap:after {
+    background: linear-gradient(81.67deg, #13547a 0%, #2e7a71 100%);
+  }
+  .c-dashboardInfo:nth-child(9) .wrap:after {
+    background: linear-gradient(82.59deg, #13547a 0%, #2e7a71 100%);
+  }
+
   .c-dashboardInfo__title svg {
     color: #d7d7d7;
     margin-left: 5px;

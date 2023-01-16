@@ -330,6 +330,77 @@ let connection;
     // END
 // Store Intelligence Today Return Qty --END
 
+
+// Store Transit Qty --START
+    // START
+    router.post("/gettransitqty",async(req,res)=>{
+        console.log(req.body[0],"gettransitqty")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request");
+            await connection.execute(`SELECT sum(vi.qty) as "Transit QTY" FROM rps.voucher v INNER JOIN RPS.vou_item vi ON v.sid=vi.vou_sid AND v.vou_class=2 AND v.store_sid=:id3`,[req.body[0].store_sid],{
+                fetchInfo : {
+                }
+              },function(err,result){
+                console.log("Start",result,err,"Result from server /gettransitqty")
+                res.json({messages:result.rows});
+            });
+    
+        } catch(err){
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+// Store Transit Qty --END
+
+// Deposit Amount --Start
+    // START
+    router.post("/getDepositAmt",async(req,res)=>{
+        console.log(req.body[0],"getDepositAmt")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request");
+            await connection.execute(`select sum(so_deposit_amt_paid) from rps.document where order_doc_no is not null AND TRUNC(created_datetime)=TRUNC(sysdate)AND store_sid=:id`,[req.body[0].store_sid],{
+                fetchInfo : { 
+                }
+              },function(err,result){
+                console.log("Start",result,"Result from server /getDepositAmt")
+                res.json({messages:result.rows});
+            });
+    
+        } catch(err){
+    
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+// Deposit Amount --END
+
+
 // Store Intelligence Total Negative Stock in Store --START
     // START
     router.post("/negativeStock",async(req,res)=>{
@@ -702,5 +773,114 @@ let connection;
     })
     // END
 // Store Discount --START
+
+// Today Receipt Count --START
+    // START
+    router.post("/getRcptCount",async(req,res)=>{
+        console.log(req.body[0].store_sid,"/getRcptCount")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request received with request body:",req.body[0].store_sid,"TODAY'S Recipt Count");
+            await connection.execute(`SELECT count(sid) FROM rps.document a WHERE a.receipt_type IN (0,1) AND a.status IN (4) AND TRUNC(a.created_datetime)=TRUNC(sysdate) AND a.store_sid = :id1`,[req.body[0].store_sid],{
+                fetchInfo : { 
+                }
+              },function(err,result){
+                console.log("Start",result,"Result from server /gettdyrcptcount")
+                result?res.json(result.rows):res.json({messages:[]})
+            });
+    
+        } catch(err){
+            console.log(err);
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+// Today Receipt Count --END
+
+// Yesterday Receipt Count --START
+    // START
+    router.post("/getytdRcptCount",async(req,res)=>{
+        console.log(req.body[0].store_sid,"/getytdRcptCount")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request received with request body:",req.body[0].store_sid,"YESTERDAY'S Recipt Count");
+            await connection.execute(`SELECT count(sid) FROM rps.document a WHERE a.receipt_type IN (0,1) AND a.status IN (4) AND TRUNC(a.created_datetime)=TRUNC(sysdate)-1 AND a.store_sid = :id1`,[req.body[0].store_sid],{
+                fetchInfo : { 
+                }
+              },function(err,result){
+                console.log("Start",result,"Result from server /getytdRcptCount")
+                result?res.json(result.rows):res.json({messages:[]})
+            });
+    
+        } catch(err){
+            console.log(err);
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+// Yesterday Receipt Count --END
+
+
+// Store Today tax total --Start
+    // START
+    router.post("/gettaxtotal",async(req,res)=>{
+        console.log(req.body[0].Text,"gettaxtotal")
+    let connection;
+    (async function(){
+        try{
+            connection = await oracledb.getConnection(connectDB.cred);
+            console.log("Axios request");
+            await connection.execute(`SELECT sum(a.transaction_total_tax_amt) as TAX_TOTAL FROM rps.document a WHERE a.DOC_NO IS NOT NULL AND a.receipt_type in(0,1) and a.status=4 and TRUNC(a.created_datetime)=TRUNC(sysdate) and a.store_sid=:id1`,[req.body[0].store_sid],{
+                fetchInfo : { 
+                    "TAX_TOTAL" : { type : oracledb.STRING  } ,
+                }
+              },function(err,result){
+                console.log("Start",result,"Result from server /gettaxtotal")
+                result.rows?res.json({messages:result.rows}):res.json({messages:[]})
+                // res.json({messages:result.rows});
+            });
+    
+        } catch(err){
+    
+            console.log("NOT connected");
+        }finally{
+    
+            if(connection){
+                try{
+                    await connection.close();
+                }catch(err){
+                    console.log("Errror");
+                }
+            }
+        }
+    })()
+    })
+    // END
+// Store Today tax total --END
+
 
 module.exports = router;
