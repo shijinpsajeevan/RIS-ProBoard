@@ -74,6 +74,7 @@ function StoreInfo({ name, ...props }) {
   const [ytdrcptCount,set_ytdrcptCount] = useState(0);
   const [taxTotal,set_taxTotal] = useState(0);
   const [deposit,setDeposit] = useState(0);
+  const [currency,setCurrency] = useState('AED');
   const [transitQty,settransitQqty] = useState(0);
 
 
@@ -84,6 +85,37 @@ function StoreInfo({ name, ...props }) {
     dispatch(set_selected_store(str_sid));
   };
 
+  const getCurrAbr = async (a) => {
+    try {
+      await axios
+        .request({
+          method: "POST",
+          url: "http://localhost:3001/dashboard/getCurrAbr",
+          headers: {
+            "content-type": "application/json",
+          },
+          data: [
+            {
+              store_sid: a,
+            },
+          ],
+        })
+        .then(function (res) {
+          {
+            res.data.messages[0]
+              ? res.data.messages[0][0]
+                ? setCurrency(res.data.messages[0][0])
+                : setCurrency('AED')
+              : setCurrency('AED');
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    } catch (error) {
+      console.log("axios error");
+    }
+  };
 
   const getDepositAmt = async (a) => {
     try {
@@ -104,9 +136,9 @@ function StoreInfo({ name, ...props }) {
           {
             res.data.messages[0]
               ? res.data.messages[0][0]
-                ? setDeposit("AED " +res.data.messages[0][0])
-                : setDeposit("AED " +0)
-              : setDeposit("AED " +0);
+                ? setDeposit(res.data.messages[0][0])
+                : setDeposit(0)
+              : setDeposit(0);
           }
         })
         .catch(function (error) {
@@ -168,9 +200,9 @@ function StoreInfo({ name, ...props }) {
           {
             res.data.messages[0]
               ? res.data.messages[0][0]
-                ? set_taxTotal("AED " + res.data.messages[0][0])
-                : set_taxTotal("AED " + 0)
-              : set_taxTotal("AED " + 0);
+                ? set_taxTotal(res.data.messages[0][0]*1)
+                : set_taxTotal(0)
+              : set_taxTotal(0);
           }
         })
         .catch(function (error) {
@@ -251,7 +283,7 @@ function StoreInfo({ name, ...props }) {
           ],
         })
         .then(function (res) {
-          {res.data?set_tdy_disc_total("AED "+res.data):set_tdy_disc_total(0);}  
+          {res.data?set_tdy_disc_total(res.data):set_tdy_disc_total(0);}  
           // {res.data.messages[0]? res.data.messages[0][0]? set_tdy_disc_total(res.data.messages[0][0]): set_tdy_disc_total(0): set_tdy_disc_total(0);}
         })
         .catch(function (error) {
@@ -345,9 +377,9 @@ function StoreInfo({ name, ...props }) {
           {
             res.data.messages[0]
               ? res.data.messages[0][0]
-                ? set_tdy_ttl_trans("AED " + res.data.messages[0][0])
-                : set_tdy_ttl_trans("AED " + 0)
-              : set_tdy_ttl_trans("AED " + 0);
+                ? set_tdy_ttl_trans(res.data.messages[0][0])
+                : set_tdy_ttl_trans(0)
+              : set_tdy_ttl_trans(0);
           }
         })
         .catch(function (error) {
@@ -377,9 +409,9 @@ function StoreInfo({ name, ...props }) {
           {
             res.data.messages[0]
               ? res.data.messages[0][0]
-                ? set_ytd_ttl_trans("AED " + res.data.messages[0][0])
-                : set_ytd_ttl_trans("AED " + 0)
-              : set_ytd_ttl_trans("AED " + 0);
+                ? set_ytd_ttl_trans(res.data.messages[0][0])
+                : set_ytd_ttl_trans(0)
+              : set_ytd_ttl_trans(0);
           }
         })
         .catch(function (error) {
@@ -563,6 +595,7 @@ function StoreInfo({ name, ...props }) {
           gettaxTotal(res.data.messages[0][0]);
           gettransitqty(res.data.messages[0][0]);
           getDepositAmt(res.data.messages[0][0]);
+          getCurrAbr(res.data.messages[0][0]);
         })
         .catch(function (error) {
           console.error(error);
@@ -929,10 +962,10 @@ function StoreInfo({ name, ...props }) {
                                     </svg>
                                   </h4>
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
-                                    {tdy_ttl_trans}
+                                    {currency} {tdy_ttl_trans}
                                   </span>
                                   <span className="hind-font caption-12 c-dashboardInfo__subInfo">
-                                    Yesterday: {ytd_ttl_trans}
+                                    Yesterday: {currency} {ytd_ttl_trans}
                                   </span>
                                 </div>
                               </div>
@@ -1006,7 +1039,7 @@ function StoreInfo({ name, ...props }) {
                                     </svg>
                                   </h4>
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
-                                    {tdy_disc_total}
+                                  {currency} {tdy_disc_total}
                                   </span>
                                   <span className="hind-font caption-12 c-dashboardInfo__subInfo">
                                     {/* Yesterday: {ytd_ttl_trans} */}
@@ -1084,7 +1117,7 @@ function StoreInfo({ name, ...props }) {
                                     </svg>
                                   </h4>
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
-                                    {taxTotal}
+                                  {currency} {taxTotal}
                                   </span>
                                   <span className="hind-font caption-12 c-dashboardInfo__subInfo">
                                     Yesterday: {ytdrcptCount}
@@ -1110,7 +1143,7 @@ function StoreInfo({ name, ...props }) {
                                     </svg>
                                   </h4>
                                   <span className="hind-font caption-12 c-dashboardInfo__count">
-                                    {deposit}
+                                  {currency} {deposit}
                                   </span>
                                   <span className="hind-font caption-12 c-dashboardInfo__subInfo">
                                     

@@ -35,7 +35,19 @@ function DynamicStackedBarChartComp() {
         // {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}   
         var barObj = res.data.map(([STORE_NO,STORE_CODE,CASHIER,ASSOCIATE,SOLD_QTY,EXT_PRICE,EXT_PRICE_WT,EXT_DISCOUNT,DISC_PERC,EXT_DISC_WT])=>({STORE_NO,STORE_CODE,CASHIER,ASSOCIATE,SOLD_QTY,EXT_PRICE,EXT_PRICE_WT,EXT_DISCOUNT,DISC_PERC,EXT_DISC_WT}))
 
-        console.log("BARCHART",barObj)
+        function convertIntObj(obj) {
+          const res = []
+          for (const key in obj) {
+            res[key] = {};
+            for (const prop in obj[key]) {
+              const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+              res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+            }
+          }
+          barObj = res;
+        }
+  
+        convertIntObj(barObj);
         
         setBarData(barObj)
         // setLineData((old)=>[...old,lineObj])

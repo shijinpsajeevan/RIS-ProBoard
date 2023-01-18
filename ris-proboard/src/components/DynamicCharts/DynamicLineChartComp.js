@@ -34,7 +34,19 @@ function DynamicLineChartComp() {
         // {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}   
         var lineObj = res.data.map(([HOUR,SOLD_QTY,RETURN_QTY,EXT_PRICE,EXT_ORG_PRICE,EXT_DISC,EXT_PRICE_WT,EXT_DISC_WT])=>({HOUR,SOLD_QTY,RETURN_QTY,EXT_PRICE,EXT_ORG_PRICE,EXT_DISC,EXT_PRICE_WT,EXT_DISC_WT}))
 
-        console.log("After MAP",lineObj)
+        function convertIntObj(obj) {
+          const res = []
+          for (const key in obj) {
+            res[key] = {};
+            for (const prop in obj[key]) {
+              const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+              res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+            }
+          }
+          lineObj = res;
+        }
+  
+        convertIntObj(lineObj);
         
         setLineData(lineObj)
         // setLineData((old)=>[...old,lineObj])

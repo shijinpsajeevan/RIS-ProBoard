@@ -30,7 +30,19 @@ function LineChartComp() {
         // {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}   
         var lineObj = res.data.map(([STORE_CODE,ASSOCIATE,YEAR,MONTH,HOUR,SOLD_QTY,RETURN_QTY,EXT_PRICE,EXT_ORG_PRICE,EXT_DISC,EXT_PRICE_WT,EXT_DISC_WT])=>({STORE_CODE,ASSOCIATE,YEAR,MONTH,HOUR,SOLD_QTY,RETURN_QTY,EXT_PRICE,EXT_ORG_PRICE,EXT_DISC,EXT_PRICE_WT,EXT_DISC_WT}))
 
-        console.log("After MAP",lineObj)
+        function convertIntObj(obj) {
+          const res = []
+          for (const key in obj) {
+            res[key] = {};
+            for (const prop in obj[key]) {
+              const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+              res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+            }
+          }
+          lineObj = res;
+        }
+  
+        convertIntObj(lineObj);
         
         setLineData(lineObj)
         // setLineData((old)=>[...old,lineObj])
@@ -59,8 +71,8 @@ function LineChartComp() {
     <>
       <ResponsiveContainer>
       <ComposedChart width="100%" height={250} data={lineData}>
-      <XAxis dataKey="HOUR" label={{ value: 'HOUR', position:'insideRight' }} />
-      <YAxis dataKey="EXT_PRICE_WT" label={{ value: 'Price',angle: -90, position: 'insideLeft' }} />
+      <XAxis dataKey="HOUR" label={{ value: 'HOUR', position:'insideBottomRight', offset:-4}}/>
+      <YAxis dataKey="EXT_PRICE_WT" type='number' label={{value: 'Price',angle: -90, position: 'insideLeft'}} />
       <Tooltip />
       <Legend />
       <CartesianGrid stroke="#f5f5f5" />

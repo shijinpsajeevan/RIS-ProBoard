@@ -35,8 +35,19 @@ function TenderDailyStatTable() {
         .then(function (res) {
           var tenderstatObj = res.data.map(([TENDER,AMOUNT]) => ({TENDER,AMOUNT}));
 
-          console.log("Table Column", tenderstatObj);
+          function convertIntObj(obj) {
+            const res = []
+            for (const key in obj) {
+              res[key] = {};
+              for (const prop in obj[key]) {
+                const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+                res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+              }
+            }
+            tenderstatObj = res;
+          }
 
+          convertIntObj(tenderstatObj);
           setTenderstatData(tenderstatObj);
 
         })
@@ -85,7 +96,7 @@ function TenderDailyStatTable() {
         AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
         Footer: () => (
           <Stack alignItems={'center'}>
-            Total Amount <Box color="warning.main">{Math.round(totalAmount*100)/100 }</Box>
+            Total Amount <Box color="warning.main">{Math.round(totalAmount*100,2)/100 }</Box>
           </Stack>
         )
       }

@@ -40,7 +40,19 @@ function DynamicEmpDailyStatTable() {
         .then(function (res) {
           var empstatTableObj = res.data.map(([EMPLOYEE1_SID,EMPLOYEE,DOCUMENT_COUNT,DOCUMENT_QTY,SALE_TOTAL,ATV,UPT,DISC_AMOUNT,TOTAL_TAX]) => ({EMPLOYEE1_SID,EMPLOYEE,DOCUMENT_COUNT,DOCUMENT_QTY,SALE_TOTAL,ATV,UPT,DISC_AMOUNT,TOTAL_TAX}));
 
-          console.log("Table Column", empstatTableObj);
+          function convertIntObj(obj) {
+            const res = []
+            for (const key in obj) {
+              res[key] = {};
+              for (const prop in obj[key]) {
+                const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+                res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+              }
+            }
+            empstatTableObj = res;
+          }
+    
+          convertIntObj(empstatTableObj);
 
           setempstatData(empstatTableObj);
 

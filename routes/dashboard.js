@@ -34,6 +34,43 @@ let connection;
 // END
 })
 
+// GET Currency - Module will be replaced once Subsidiary selection is enabled.
+//START
+router.post("/getCurrAbr",async(req,res)=>{
+
+    // START
+let connection;
+(async function(){
+    try{
+        console.log("getCurrAbr",req.body[0].store_sid)
+        connection = await oracledb.getConnection(connectDB.cred);
+        await connection.execute(`SELECT curr.alphabetic_code AS Base_Currency_CODE FROM RPS.subsidiary sbs INNER JOIN RPS.store str ON sbs.sid=str.sbs_sid INNER JOIN RPS.currency curr ON sbs.base_currency_sid=curr.sid where str.sid=:id`,[req.body[0].store_sid],{
+            "BASE_CURRENCY_CODE" : { type : oracledb.STRING  } ,
+        },
+        function(err,result){
+            res.json({messages:result.rows});
+        });
+
+    } catch(err){
+
+        console.log("NOT connected");
+    }finally{
+
+        if(connection){
+            try{
+                await connection.close();
+            }catch(err){
+                console.log("Errror");
+            }
+        }
+    }
+})()
+
+// END
+})
+//END
+
+
 router.post("/subsidiary",async(req,res)=>{
 
     // START
@@ -632,7 +669,7 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request received with request body:",req.body[0].store_sid);
-            await connection.execute(`SELECT b.employee1_sid as EMP_SID,b.employee1_full_name AS EMPLOYEE,COUNT(DISTINCT(a.sid))AS DOC_COUNT,SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))AS Doc_Qty,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)AS Sale_Total,ROUND((ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)/COUNT(DISTINCT(a.sid))),2) AS AVG_BKT,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))/COUNT(DISTINCT(a.sid)),2) AS UPT,ROUND(SUM(ROUND((((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.ORIG_PRICE))-((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE))),2)),2) AS "DISC AMT" FROM rps.document a join rps.document_item b on b.doc_sid = a.sid LEFT join rps.document_disc c on c.doc_sid = a.sid WHERE TRUNC(a.created_datetime)=TRUNC(sysdate) and a.receipt_type in (0,1)and b.item_type in (1,2) and a.status =4AND a.store_sid=:id GROUP BY b.employee1_full_name,b.employee1_sid`,[req.body[0].store_sid],{
+            await connection.execute(`SELECT b.employee1_sid as EMP_SID,b.employee1_full_name AS EMPLOYEE,COUNT(DISTINCT(a.sid))AS DOC_COUNT,SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))AS Doc_Qty,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)AS Sale_Total,ROUND((ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.price)),2)/COUNT(DISTINCT(a.sid))),2) AS AVG_BKT,ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty))/COUNT(DISTINCT(a.sid)),2) AS UPT,ROUND(SUM(ROUND((((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.ORIG_PRICE))-((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE))),2)),2) AS "DISC AMT", ROUND(SUM(DECODE(b.item_type,2,b.qty*-1,b.qty)*(b.TAX_AMT)),2) AS Tax_Total FROM rps.document a join rps.document_item b on b.doc_sid = a.sid LEFT join rps.document_disc c on c.doc_sid = a.sid WHERE TRUNC(a.created_datetime)=TRUNC(sysdate) and a.receipt_type in (0,1)and b.item_type in (1,2) and a.status =4 AND a.store_sid=:id GROUP BY b.employee1_full_name,b.employee1_sid`,[req.body[0].store_sid],{
                 fetchInfo : { 
                     "EMP_SID" : {type:oracledb.STRING},
                     "SALE_TOTAL" : {type:oracledb.STRING},
@@ -672,7 +709,7 @@ let connection;
         try{
             connection = await oracledb.getConnection(connectDB.cred);
             console.log("Axios request received with request body:",req.body[0].store_sid);
-            await connection.execute(`SELECT DECODE(A.TENDER_TYPE,6,'Split',DECODE(A.TENDER_NAME,NULL,'Credit Card',A.TENDER_NAME)) AS TENDER,ROUND(SUM(ROUND(((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE)), 2)),1) AS "EXT PRICE W TAX" FROM RPS.DOCUMENT A INNER JOIN RPS.DOCUMENT_ITEM B ON B.DOC_SID = A.SID WHERE A.RECEIPT_TYPE IN(0, 1) AND B.ITEM_TYPE IN(1, 2) AND A.STATUS=4 AND TRUNC(A.CREATED_DATETIME)BETWEEN trunc(sysdate) AND trunc(sysdate) AND a.store_sid=:id GROUP BY A.STORE_NAME,DECODE(A.TENDER_TYPE,6,'Split',DECODE(A.TENDER_NAME, NULL,'Credit Card',A.TENDER_NAME))`,[req.body[0].store_sid],{
+            await connection.execute(`SELECT DECODE(A.TENDER_TYPE,6,'Split',DECODE(A.TENDER_NAME,NULL,'Credit Card',A.TENDER_NAME)) AS TENDER,ROUND(SUM(ROUND(((CASE WHEN B.ITEM_TYPE=2 THEN B.QTY*-1 ELSE B.QTY END)*(B.PRICE)), 2)),2) AS "EXT PRICE W TAX" FROM RPS.DOCUMENT A INNER JOIN RPS.DOCUMENT_ITEM B ON B.DOC_SID = A.SID WHERE A.RECEIPT_TYPE IN(0, 1) AND B.ITEM_TYPE IN(1, 2) AND A.STATUS=4 AND TRUNC(A.CREATED_DATETIME)BETWEEN trunc(sysdate) AND trunc(sysdate) AND a.store_sid=:id GROUP BY A.STORE_NAME,DECODE(A.TENDER_TYPE,6,'Split',DECODE(A.TENDER_NAME, NULL,'Credit Card',A.TENDER_NAME))`,[req.body[0].store_sid],{
                 fetchInfo : { 
                     "EMP_SID" : {type:oracledb.STRING},
                     "EXT PRICE W TAX": {type:oracledb.DEFAULT}

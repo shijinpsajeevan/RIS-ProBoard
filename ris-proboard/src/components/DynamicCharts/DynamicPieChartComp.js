@@ -50,10 +50,21 @@ const gettdyDiscPieChart= async()=>{
 
       var lineObj = res.data.map(([name,value]) => ({name,value}));
 
-      console.log("PIECHART11111",lineObj);
+      function convertIntObj(obj) {
+        const res = []
+        for (const key in obj) {
+          res[key] = {};
+          for (const prop in obj[key]) {
+            const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+            res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+          }
+        }
+        lineObj = res;
+      }
+
+      convertIntObj(lineObj);
 
       setPieData(lineObj)
-      // setPieData((old)=>[...old,lineObj])
     })
     .catch(function (error) {
         console.error(error);

@@ -39,8 +39,19 @@ function DynamicTenderDailyStatTable() {
         .then(function (res) {
           var tenderstatObj = res.data.map(([TENDER,AMOUNT]) => ({TENDER,AMOUNT}));
 
-          console.log("Table Column", tenderstatObj);
+          function convertIntObj(obj) {
+            const res = []
+            for (const key in obj) {
+              res[key] = {};
+              for (const prop in obj[key]) {
+                const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+                res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+              }
+            }
+            tenderstatObj = res;
+          }
 
+          convertIntObj(tenderstatObj);
           setTenderstatData(tenderstatObj);
 
         })

@@ -30,7 +30,19 @@ function BrushChartComp() {
         // {res.data.messages[0]?res.data.messages[0][0]?setnegQqty(res.data.messages[0][0]):setnegQqty(0):setnegQqty(0)}   
         var brushObj = res.data.map(([RCPT_No,RCPT_DATE,RCPT_TIME,SOLD_QTY,RETURN_QTY,DISCOUNT,EXT_PRICE_W_TAX])=>({RCPT_No,RCPT_DATE,RCPT_TIME,SOLD_QTY,RETURN_QTY,DISCOUNT,EXT_PRICE_W_TAX}))
 
-        console.log("After MAP",brushObj)
+        function convertIntObj(obj) {
+          const res = []
+          for (const key in obj) {
+            res[key] = {};
+            for (const prop in obj[key]) {
+              const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+              res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+            }
+          }
+          brushObj = res;
+        }
+  
+        convertIntObj(brushObj);
         
         setBrushData(brushObj)
 

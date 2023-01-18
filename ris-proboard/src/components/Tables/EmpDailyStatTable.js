@@ -33,9 +33,21 @@ function EmpDailyStatTable() {
           ],
         })
         .then(function (res) {
-          var empstatTableObj = res.data.map(([EMPLOYEE1_SID,EMPLOYEE,DOCUMENT_COUNT,DOCUMENT_QTY,SALE_TOTAL,ATV,UPT,DISC_AMOUNT]) => ({EMPLOYEE1_SID,EMPLOYEE,DOCUMENT_COUNT,DOCUMENT_QTY,SALE_TOTAL,ATV,UPT,DISC_AMOUNT}));
+          var empstatTableObj = res.data.map(([EMPLOYEE1_SID,EMPLOYEE,DOCUMENT_COUNT,DOCUMENT_QTY,SALE_TOTAL,ATV,UPT,DISC_AMOUNT,TOTAL_TAX]) => ({EMPLOYEE1_SID,EMPLOYEE,DOCUMENT_COUNT,DOCUMENT_QTY,SALE_TOTAL,ATV,UPT,DISC_AMOUNT,TOTAL_TAX}));
 
-          console.log("Table Column", empstatTableObj);
+          function convertIntObj(obj) {
+            const res = []
+            for (const key in obj) {
+              res[key] = {};
+              for (const prop in obj[key]) {
+                const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
+                res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+              }
+            }
+            empstatTableObj = res;
+          }
+    
+          convertIntObj(empstatTableObj);
 
           setempstatData(empstatTableObj);
 
@@ -76,6 +88,10 @@ function EmpDailyStatTable() {
     () =>(empstatData.reduce((acc, curr) => parseFloat(acc) + parseFloat(curr.DISC_AMOUNT), 0)),
   );
 
+  const totaltax = useMemo(
+    () =>(empstatData.reduce((acc, curr) => parseFloat(acc) + parseFloat(curr.TOTAL_TAX), 0)),
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -103,19 +119,6 @@ function EmpDailyStatTable() {
           <Stack>
             Total Doc Qty
             <Box color="warning.main">{Math.round(totalDocQty*100)/100 }</Box>
-          </Stack>
-        )
-      },
-      {
-        accessorKey: 'SALE_TOTAL', //access nested data with dot notation
-        header: 'TOTAL SALES',
-        enableGrouping: false, //do not let this column be grouped
-        aggregationFn: 'sum', //calc total points for each team by adding up all the points for each player on the team
-        AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
-        Footer: () => (
-          <Stack>
-            Total Sale
-            <Box color="warning.main">{Math.round(totalSalary*100)/100 }</Box>
           </Stack>
         )
       },
@@ -155,6 +158,32 @@ function EmpDailyStatTable() {
           <Stack>
             Total Discount
             <Box color="warning.main">{Math.round(totalDiscount*100)/100 }</Box>
+          </Stack>
+        )
+      },
+      {
+        accessorKey: 'TOTAL_TAX', //access nested data with dot notation
+        header: 'TAX ',
+        enableGrouping: false, //do not let this column be grouped
+        aggregationFn: 'sum', //calc total points for each team by adding up all the points for each player on the team
+        AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
+        Footer: () => (
+          <Stack>
+            Total Discount
+            <Box color="warning.main">{Math.round(totaltax*100)/100 }</Box>
+          </Stack>
+        )
+      },
+      {
+        accessorKey: 'SALE_TOTAL', //access nested data with dot notation
+        header: 'TOTAL SALES',
+        enableGrouping: false, //do not let this column be grouped
+        aggregationFn: 'sum', //calc total points for each team by adding up all the points for each player on the team
+        AggregatedCell: ({ cell }) => <div>Team Score: {cell.getValue()}</div>,
+        Footer: () => (
+          <Stack>
+            Total Sale
+            <Box color="warning.main">{Math.round(totalSalary*100)/100 }</Box>
           </Stack>
         )
       }
