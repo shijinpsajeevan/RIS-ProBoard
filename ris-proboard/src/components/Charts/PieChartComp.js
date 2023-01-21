@@ -52,7 +52,8 @@ const gettdyDiscPieChart= async()=>{
           res[key] = {};
           for (const prop in obj[key]) {
             const parsed = parseFloat(parseFloat(obj[key][prop],10).toFixed(2));
-            res[key][prop] = isNaN(parsed) ? obj[key][prop] : parsed;
+            var re = new RegExp('^-?\\d{1,9}(\\.\\d{1,30})?$');
+            res[key][prop] = re.test(obj[key][prop]) ? parsed : obj[key][prop];
           }
         }
         lineObj = res;
